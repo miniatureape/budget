@@ -26,11 +26,12 @@
                         <tr>
                             <th>Day</th>
                             <th>Amount</th>
+                            <th data-allowance-mount></th>
                         </tr>
                     </thead>
                     <tfoot>
                         <tr>
-                            <td colspan=2">
+                            <td colspan="3">
                                 <input 
                                     class="input-wide input-bordered rounded"
                                     data-expense-form 
@@ -59,6 +60,7 @@
             <tr>
                 <td><%= fmt_date %></td>
                 <td>$ <%= amount %></td>
+                <td><%= running_total %></td>
             </tr>
         </script>
 

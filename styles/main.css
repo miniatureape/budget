@@ -38,6 +38,11 @@ button {
     font-weight: 600;
 }
 
+button:focus {
+    outline: none;
+    border: none;
+}
+
 .rounded {
     border-radius: 5px;
 }

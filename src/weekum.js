@@ -36,17 +36,30 @@ var Expenses = Backbone.Collection.extend({
 });
 
 var ExpensesView = Backbone.View.extend({
+
     template:  _.template($('#expense-row').html()),
+
     initialize: function(opts) {
         this.expenses = opts.expenses;
+        this.app = opts.app;
         this.listenTo(this.expenses, 'add', this.render);
     },
+
     render: function() {
+        var parts = [];
+
         var html = this.expenses.reduce(function(memo, expense) {
-            return memo + this.template(expense.serializeData());
-        }, "", this);
-        this.$el.html(html);
+            var data = _.extend({}, expense.serializeData(), {
+                running_total: this.app.get('allowance') - (expense.get('amount') + memo)
+            });
+            parts.push(this.template(data));
+
+            return memo + expense.get('amount');
+        }, 0, this);
+
+        this.$el.html(parts.join(''));
     }
+
 });
 
 var WeekView = Backbone.View.extend({
@@ -88,8 +101,6 @@ var ExpenseForm = Backbone.View.extend({
     handleSubmit: function(e) {
         if ([KEYS.tab, KEYS.enter].indexOf(e.keyCode) == -1) return;
         if (!this.$el.val()) return;
-
-        e.preventDefault();
         
         this.collection.create({
             amount: parseInt(this.$el.val(), 10),
@@ -97,6 +108,15 @@ var ExpenseForm = Backbone.View.extend({
         }).save();
 
         this.$el.val('');
+    }
+});
+
+var AllowanceView = Backbone.View.extend({
+    initialize: function(opts) {
+        this.app = opts.app;
+    },
+    render: function() {
+        this.$el.html(this.app.get('allowance'));
     }
 });
 
@@ -115,8 +135,15 @@ function main() {
 
     var expensesView = new ExpensesView({
         el: $('[data-expense-list]'),
-        expenses: expenses
+        expenses: expenses,
+        app: app
     });
+
+    var allowanceView = new AllowanceView({
+        el: $('[data-allowance-mount]'),
+        app: app
+    });
+    allowanceView.render();
 
     var expenseForm = new ExpenseForm({
         el: $('[data-expense-form]'),

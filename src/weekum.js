@@ -13,7 +13,8 @@ var KEYS = {
 
 var AppModel = Backbone.Model.extend({
     defaults: { 
-        difference: 0
+        difference: 0,
+        allowance: 20,
     }
 });
 
@@ -36,11 +37,12 @@ var Expenses = Backbone.Collection.extend({
 
 var ExpensesView = Backbone.View.extend({
     template:  _.template($('#expense-row').html()),
-    initialize: function() {
-        this.listenTo(this.model.get('expenses'), 'add', this.render);
+    initialize: function(opts) {
+        this.expenses = opts.expenses;
+        this.listenTo(this.expenses, 'add', this.render);
     },
     render: function() {
-        var html = this.model.get('expenses').reduce(function(memo, expense) {
+        var html = this.expenses.reduce(function(memo, expense) {
             return memo + this.template(expense.serializeData());
         }, "", this);
         this.$el.html(html);
@@ -48,11 +50,18 @@ var ExpensesView = Backbone.View.extend({
 });
 
 var WeekView = Backbone.View.extend({
+
     template: _.template($('#week-view').html()),
+
+    initialize: function(opts) {
+        this.app = opts.app;
+        this.expenses = opts.expenses;
+    },
+
     render: function() {
 
-        var allowance = this.model.get('allowance');
-        var spent = this.model.get('expenses').reduce(function(memo, expense) {
+        var allowance = this.app.get('allowance');
+        var spent = this.expenses.reduce(function(memo, expense) {
             return memo + (expense.get('amount') || 0);
         }, 0);
 
@@ -67,27 +76,12 @@ var WeekView = Backbone.View.extend({
     }
 });
 
-var Week = Backbone.Model.extend({
-    defaults: function() {
-        return {
-            expenses: new Expenses(),
-            allowance: 20,
-        }
-    },
-    initialize: function() {
-        this.get('expenses').fetch();
-    },
-});
-
-var Weeks = Backbone.Collection.extend({
-    localStorage: new Backbone.LocalStorage("Weeks"),
-    model: Week,
-});
-
 var ExpenseForm = Backbone.View.extend({
+
     initialize: function(opts) {
         this.collection = opts.collection
     },
+
     events: {
         keydown: 'handleSubmit'
     },
@@ -108,28 +102,25 @@ var ExpenseForm = Backbone.View.extend({
 
 function main() {
 
-    var weeks = new Weeks();
-    weeks.fetch();
+    var app = new AppModel();
 
-    if (weeks.isEmpty()) {
-        weeks.add(new Week());
-    }
-
-    var week = weeks.first();
+    var expenses = new Expenses();
+    expenses.fetch();
 
     var weekView = new WeekView({
         el: $('[data-week-view-mount]'),
-        model: week
+        expenses: expenses,
+        app: app
     });
 
     var expensesView = new ExpensesView({
         el: $('[data-expense-list]'),
-        model: week
+        expenses: expenses
     });
 
     var expenseForm = new ExpenseForm({
         el: $('[data-expense-form]'),
-        collection: week.get('expenses')
+        collection: expenses
     });
 
     expensesView.render();

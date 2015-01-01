@@ -62,33 +62,6 @@ var ExpensesView = Backbone.View.extend({
 
 });
 
-var WeekView = Backbone.View.extend({
-
-    template: _.template($('#week-view').html()),
-
-    initialize: function(opts) {
-        this.app = opts.app;
-        this.expenses = opts.expenses;
-    },
-
-    render: function() {
-
-        var allowance = this.app.get('allowance');
-        var spent = this.expenses.reduce(function(memo, expense) {
-            return memo + (expense.get('amount') || 0);
-        }, 0);
-
-        var html = this.template({
-            allowance: allowance,
-            spent: spent,
-            difference: allowance - spent,
-
-        });
-
-        this.$el.html(html);
-    }
-});
-
 var ExpenseForm = Backbone.View.extend({
 
     initialize: function(opts) {
@@ -127,12 +100,6 @@ function main() {
     var expenses = new Expenses();
     expenses.fetch();
 
-    var weekView = new WeekView({
-        el: $('[data-week-view-mount]'),
-        expenses: expenses,
-        app: app
-    });
-
     var expensesView = new ExpensesView({
         el: $('[data-expense-list]'),
         expenses: expenses,
@@ -151,7 +118,6 @@ function main() {
     });
 
     expensesView.render();
-    weekView.render();
 
 }
 

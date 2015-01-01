@@ -121,16 +121,3 @@ input {
 input[type="number"] {
     padding: 10px;
 }
-
-.text-label {
-    font-weight: bold;
-    font-size: smaller;
-    color: #666;
-    text-align: center;
-}
-
-.stat-block {
-    text-align: center;
-    font-weight: bold;
-    font-size: 20px;
-}

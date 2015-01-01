@@ -15624,6 +15624,7 @@ var ExpensesView = Backbone.View.extend({
 
 });
 
+/*
 var WeekView = Backbone.View.extend({
 
     template: _.template($('#week-view').html()),
@@ -15650,6 +15651,7 @@ var WeekView = Backbone.View.extend({
         this.$el.html(html);
     }
 });
+*/
 
 var ExpenseForm = Backbone.View.extend({
 
@@ -15689,11 +15691,13 @@ function main() {
     var expenses = new Expenses();
     expenses.fetch();
 
+    /*
     var weekView = new WeekView({
         el: $('[data-week-view-mount]'),
         expenses: expenses,
         app: app
     });
+    */
 
     var expensesView = new ExpensesView({
         el: $('[data-expense-list]'),
@@ -15713,7 +15717,7 @@ function main() {
     });
 
     expensesView.render();
-    weekView.render();
+    // weekView.render();
 
 }
 

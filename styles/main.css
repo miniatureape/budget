@@ -1,0 +1,131 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    font-family: 'Helvetica', sans-serif;
+}
+
+.padding-1 {
+    padding: 7px;
+}
+
+.padding-h-1 {
+    padding: 7px;
+}
+
+.padding-2 {
+    padding: 10px;
+}
+
+.margin-b-1 {
+    margin-bottom: 7px;
+}
+
+.margin-v-1 {
+    margin: 7px 0;
+}
+
+.width-3 {
+    width: 33.3%;
+}
+
+button {
+    background: none;
+    border: 1px solid;
+    font-weight: 600;
+}
+
+.rounded {
+    border-radius: 5px;
+}
+
+.primary {
+    background: #2980b9;
+    color: #ffffff;
+}
+
+.right {
+    display: block;
+    float: right;
+}
+
+.left {
+    display: block;
+    float: left;
+}
+
+.block {
+    display: block;
+}
+
+.row {
+    clear: both;
+    overflow: hidden;
+}
+
+.wrapper {
+    margin: 0 auto;
+    max-width: 600px;
+}
+
+.table {
+    width: 100%;
+}
+
+.table-bordered {
+    border: 1px solid #ddd;
+}
+
+.table td, .table th {
+    padding: 7px;
+}
+
+.table-bordered td, .table-bordered th {
+    border-bottom: 1px solid #ddd;
+}
+
+.table-bordered tr:last-child td {
+    border-bottom: none;
+}
+
+.table th {
+    text-align: left;
+}
+
+.table thead {
+    font-weight: 600;
+}
+
+input {
+    outline: none;
+    border: none;
+}
+
+.input-bordered {
+    border: 1px solid #ddd;
+}
+
+.input-wide {
+    display: block;
+    width: 100%;
+}
+
+input[type="number"] {
+    padding: 10px;
+}
+
+.text-label {
+    font-weight: bold;
+    font-size: smaller;
+    color: #666;
+    text-align: center;
+}
+
+.stat-block {
+    text-align: center;
+    font-weight: bold;
+    font-size: 20px;
+}

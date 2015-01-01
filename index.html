@@ -5,13 +5,70 @@
         <title>Per Diem</title>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="viewport" content = "width = device-width, initial-scale = 2.3, user-scalable = no" />
+        <meta name="viewport" content = "width = device-width, initial-scale = 1, user-scalable = no" />
+        <link href="styles/main.css" rel="stylesheet"></link>
     </head>
     <body>
-        <button data-action="start-new-week">Start New Week</button>
-        <ul id='week-expenses'></ul>
-        <input id="expense" name="expense" type="telephone" />
-        <button>Submit</button>
+
+        <div class="wrapper">
+            <div class="row padding-1">
+                <div data-week-view-mount></div>
+            </div>
+            <div class="row padding-h-1 margin-b-1">
+                <div class="left width-3 text-label">Allowance</div>
+                <div class="left width-3 text-label">Spent</div>
+                <div class="left width-3 text-label">Total</div>
+            </div>
+            <div class="row padding-1">
+                <table 
+                    class="table table-bordered rounded">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <td colspan=2">
+                                <input 
+                                    class="input-wide input-bordered rounded"
+                                    data-expense-form 
+                                    type="number" 
+                                    placeholder="Add New Expense"
+                                    />
+                            </td>
+                        </tr>
+                    </tfoot>
+                    <tbody data-expense-list></tbody>
+                </table>
+            </div>
+            <div class="padding-1 row">
+                <span 
+                    data-running-total-mount
+                    class="left padding-2"></span>
+                <button 
+                    data-action="start-new-week"
+                    class="right primary padding-2 rounded"
+                    >Start New Week</button>
+            </div>
+        </div>
+
+
+        <script id="expense-row" type="text/html">
+            <tr>
+                <td><%= fmt_date %></td>
+                <td>$ <%= amount %></td>
+            </tr>
+        </script>
+
+        <script id="week-view" type="text/html">
+            <div class="left width-3 stat-block"><%= allowance %></div>
+            <div class="left width-3 stat-block"><%= spent %></div>
+            <div class="left width-3 stat-block"><%= difference %></div>
+        </script>
+
         <script src="build/index.js"></script>
+
     </body>
 </html>

@@ -37,11 +37,11 @@
                 </table>
             </div>
             <div class="padding-1 row">
-                <span 
-                    data-running-total-mount
-                    class="left padding-2"></span>
+                <span class="left padding-2">
+                    Balance: <span data-running-total-mount></span>
+                </span>
                 <button 
-                    data-action="start-new-week"
+                    data-reset-mount
                     class="right primary padding-2 rounded"
                     >Start New Week</button>
             </div>
@@ -49,7 +49,7 @@
 
 
         <script id="expense-row" type="text/html">
-            <tr>
+                <tr id="<%= id %>">
                 <td><%= fmt_date %></td>
                 <td>$ <%= amount %></td>
                 <td><%= running_total %></td>

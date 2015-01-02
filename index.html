@@ -18,7 +18,7 @@
                         <tr>
                             <th>Day</th>
                             <th>Amount</th>
-                            <th data-allowance-mount></th>
+                            <th>Remaining <span class="weak small">(from <span data-allowance-mount></span>)</span></th>
                         </tr>
                     </thead>
                     <tfoot>
@@ -28,7 +28,7 @@
                                     class="input-wide input-bordered rounded"
                                     data-expense-form 
                                     type="number" 
-                                    placeholder="Add New Expense"
+                                    placeholder="add new expense"
                                     />
                             </td>
                         </tr>
@@ -38,18 +38,18 @@
             </div>
             <div class="padding-1 row">
                 <span class="left padding-2">
-                    Balance: <span data-running-total-mount></span>
+                    <span class="strong">Balance:</span> <span data-running-total-mount></span>
                 </span>
                 <button 
                     data-reset-mount
-                    class="right primary padding-2 rounded"
+                    class="right padding-2 rounded link"
                     >Start New Week</button>
             </div>
         </div>
 
 
         <script id="expense-row" type="text/html">
-                <tr id="<%= id %>">
+            <tr id="<%= id %>" data-expense-action>
                 <td><%= fmt_date %></td>
                 <td>$ <%= amount %></td>
                 <td><%= running_total %></td>
@@ -62,7 +62,15 @@
             <div class="left width-3 stat-block"><%= difference %></div>
         </script>
 
-        <script src="build/index.js"></script>
+        <script id="expenses-empty" type="text/html">
+            <tr>
+                <td colspan="3">
+                    <div class="strong center padding-2">Log expenses below.</div>
+                </td>
+            </tr>
+        </script>
 
-    </body>
+            <script src="build/index.js"></script>
+
+        </body>
 </html>

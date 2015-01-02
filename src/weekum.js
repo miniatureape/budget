@@ -12,10 +12,14 @@ var KEYS = {
 };
 
 var AppModel = Backbone.Model.extend({
+    localStorage: new Backbone.LocalStorage("AppModel"),
     defaults: { 
         difference: 0,
-        allowance: 20,
+        allowance: 150,
         grand_total: 0,
+    },
+    incrementTotal: function(amount) {
+        this.set('grand_total', this.get('grand_total') + amount);
     }
 });
 
@@ -42,24 +46,32 @@ var Expenses = Backbone.Collection.extend({
 var ExpensesView = Backbone.View.extend({
 
     template:  _.template($('#expense-row').html()),
+    emptyTemplate:  _.template($('#expenses-empty').html()),
 
     initialize: function(opts) {
         this.expenses = opts.expenses;
         this.app = opts.app;
-        this.listenTo(this.expenses, 'add remove reset', this.render);
+        this.listenTo(this.expenses, 'add remove reset sync', this.render);
     },
 
     events: {
-        'click tr': 'remove',
+        'click [data-expense-action]': 'remove',
     },
 
     remove: function(e) {
         if (confirm("Remove this expense?")) {
-            this.expenses.remove(this.expenses.get(e.currentTarget.id));
+            var expense = this.expenses.get(e.currentTarget.id);
+            this.app.incrementTotal(expense.get('amount'));
+            this.app.save();
+            this.expenses.remove(expense);
         }
     },
 
-    render: function() {
+    renderEmpty: function() {
+        this.$el.html(this.emptyTemplate());
+    },
+
+    renderExpenses: function() {
         var parts = [];
 
         var html = this.expenses.reduce(function(memo, expense) {
@@ -73,6 +85,14 @@ var ExpensesView = Backbone.View.extend({
         }, 0, this);
 
         this.$el.html(parts.join(''));
+    },
+
+    render: function() {
+        if (this.expenses.isEmpty()) {
+            this.renderEmpty();
+        } else {
+            this.renderExpenses();
+        }
     }
 
 });
@@ -80,29 +100,39 @@ var ExpensesView = Backbone.View.extend({
 var ExpenseForm = Backbone.View.extend({
 
     initialize: function(opts) {
-        this.collection = opts.collection
+        this.collection = opts.collection;
+        this.app = opts.app;
     },
 
     events: {
         keydown: 'handleSubmit'
     },
+
     handleSubmit: function(e) {
         if ([KEYS.tab, KEYS.enter].indexOf(e.keyCode) == -1) return;
         if (!this.$el.val()) return;
+
+        var amount = Math.ceil(parseFloat(this.$el.val()));
         
         this.collection.create({
-            amount: parseInt(this.$el.val(), 10),
+            amount: amount,
             date: (new Date).getTime()
         }).save();
+
+        this.app.incrementTotal(-amount);
+        this.app.save();
 
         this.$el.val('');
     }
 });
 
 var AllowanceView = Backbone.View.extend({
+
     initialize: function(opts) {
         this.app = opts.app;
+        this.listenTo(this.app, 'sync', this.render);
     },
+
     render: function() {
         this.$el.html(this.app.get('allowance'));
     }
@@ -117,7 +147,8 @@ var ResetView = Backbone.View.extend({
     events: { 'click': 'resetWeek' },
 
     resetWeek: function() {
-        var allowance = prompt("Weekly Allowance?", this.model.get('allowance'));
+
+        var allowance = prompt("How much can you spend this week?", this.model.get('allowance'));
         allowance = parseInt(allowance, 10);
 
         if (_.isNaN(allowance)) {
@@ -126,15 +157,24 @@ var ResetView = Backbone.View.extend({
 
         var model;
 
-        while(model = this.expenses.first()) {
+        while (model = this.expenses.first()) {
             model.destroy();
         }
 
         this.model.set('allowance', allowance);
+        this.model.incrementTotal(allowance);
+
+        this.model.save();
     }
 });
 
 var TotalView = Backbone.View.extend({
+
+    initialize: function(opts) {
+        this.expenses = opts.expenses;
+        this.listenTo(this.model, 'change sync', this.render);
+    },
+
     render: function() {
         this.$el.html(this.model.get('grand_total'));
     }
@@ -143,9 +183,8 @@ var TotalView = Backbone.View.extend({
 function main() {
 
     var app = new AppModel();
-
+    app.id = 1;
     var expenses = new Expenses();
-    expenses.fetch();
 
     var expensesView = new ExpensesView({
         el: $('[data-expense-list]'),
@@ -154,19 +193,18 @@ function main() {
     });
 
     var totalView = new TotalView({ 
-        model: app ,
+        model: app,
         el: '[data-running-total-mount]'
     });
-    totalView.render();
 
     var allowanceView = new AllowanceView({
         el: $('[data-allowance-mount]'),
         app: app
     });
-    allowanceView.render();
 
     var expenseForm = new ExpenseForm({
         el: $('[data-expense-form]'),
+        app: app,
         collection: expenses
     });
 
@@ -176,7 +214,13 @@ function main() {
         expenses: expenses
     });
 
-    expensesView.render();
+    var fetch = app.fetch();
+
+    fetch.fail(function() {
+        resetView.resetWeek();
+    });
+
+    expenses.fetch();
 
 }
 

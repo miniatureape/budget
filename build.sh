@@ -1,4 +1,11 @@
-browserify src/weekum.js -o build/index.js
-cp /home/justin/projects/miniperdiem/build/index.js /home/justin/Dropbox/Public/miniperdiem/build/index.js
-cp /home/justin/projects/miniperdiem/styles/main.css /home/justin/Dropbox/Public/miniperdiem/styles/main.css
-cp /home/justin/projects/miniperdiem/index.html /home/justin/Dropbox/Public/miniperdiem/index.html
+T="$(date +%s)"
+
+zip old-deploys/replaced-by-$T.zip deploy/*
+rm deploy/*
+
+browserify main.js -o deploy/main.$T.js
+cp main.css deploy/main.css
+sed s/TIMESTAMP/$T/g index.html > deploy/index.html
+sed s/TIMESTAMP/$T/g /home/justin/projects/miniperdiem/cache.manifest.template > /home/justin/projects/miniperdiem/deploy/cache.manifest
+
+cp deploy/* /home/justin/Dropbox/Public/miniperdiem/

@@ -1,0 +1,11 @@
+CACHE MANIFEST
+# TIMESTAMP
+
+# Explicitly cached entries
+index.html
+main.css
+main.TIMESTAMP.js
+
+# All other resources (e.g. sites) require the user to be online. 
+NETWORK:
+*

@@ -5,6 +5,8 @@ CACHE MANIFEST
 index.html
 main.css
 main.TIMESTAMP.js
+fontello.css
+font/*
 
 # All other resources (e.g. sites) require the user to be online. 
 NETWORK:

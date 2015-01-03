@@ -28,6 +28,10 @@ body, html {
     margin: 7px 0;
 }
 
+.margin-1 {
+    margin: 7px;
+}
+
 .width-3 {
     width: 33.3%;
 }
@@ -100,10 +104,6 @@ button:focus {
     border-bottom: none;
 }
 
-.table th {
-    text-align: left;
-}
-
 .table thead {
     font-weight: 600;
 }
@@ -161,3 +161,12 @@ input[type="number"] {
 .list-bordered:empty {
     border: none;
 }
+
+.list-bordered li {
+    border-bottom: 1px solid #ddd;
+}
+
+.list-bordered li:last-child {
+    border: none;
+}
+

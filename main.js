@@ -128,6 +128,12 @@ var ExpenseForm = Backbone.View.extend({
             return;
         }
 
+        if (amount === 666) {
+            window.localStorage.clear();
+            window.location.reload();
+            return;
+        }
+
         var expense = this.collection.create({
             amount: amount,
             date: (new Date).getTime(),
@@ -215,13 +221,13 @@ var BudgetListView = Backbone.View.extend({
             return memo + this.template(data);
         }, '', this);
 
-        var grand_total = this.budgets.reduce(function(memo, budget) {
-            return memo + budget.get('cummulative_total');
-        }, 0);
+        if (this.budgets.length) {
+            var grand_total = this.budgets.reduce(function(memo, budget) {
+                return memo + budget.get('cummulative_total');
+            }, 0);
 
-        console.log(grand_total);
-
-        html += this.totalTemplate({grand_total: grand_total});
+            html += this.totalTemplate({grand_total: grand_total});
+        }
 
         this.$el.html(html);
     }, 

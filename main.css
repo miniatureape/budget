@@ -67,6 +67,11 @@ button:focus {
     color: #ffffff;
 }
 
+.primary-outline {
+    background: transparent;
+    color: #2980b9;
+}
+
 .right {
     display: block;
     float: right;
@@ -176,4 +181,12 @@ input[type="number"] {
 
 .wide {
     width: 100%;
+}
+
+.no-flow {
+    position: absolute;
+
+
+.text-large {
+    font-size: 18px;
 }

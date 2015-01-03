@@ -7,6 +7,7 @@
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="viewport" content = "width = device-width, initial-scale = 1, user-scalable = no" />
         <link href="main.css" rel="stylesheet"></link>
+        <link href="fontello.css" rel="stylesheet"></link>
     </head>
     <body>
 
@@ -71,7 +72,9 @@
 
         <script id="budget" type="text/html">
             <h1 class="padding-2 center">
-                <button data-show-selection class="left link">Budgets</button>
+                <button data-show-selection class="left no-flow link rounded text-large">
+                    <i class="icon-left-open"></i>
+                </button>
                 <%= name %>
             </h1>
             <div class="row padding-1 expense-table">

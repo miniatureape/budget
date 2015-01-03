@@ -255,7 +255,7 @@ var SelectionView = Backbone.View.extend({
 
     render: function() {
 
-        this.$el.html(this.template());
+        this.$el.html(this.template({has_budgets: !this.budgets.isEmpty()}));
 
         var budgetListView = new BudgetListView({
             el: this.$el.find('[data-budget-list-mount]'),

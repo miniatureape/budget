@@ -11,7 +11,7 @@
     <body>
 
         <div data-app class="wrapper">
-            <div data-view-region ></div>
+            <div data-view-region></div>
         </div>
 
         <!-- Templates -->
@@ -60,10 +60,13 @@
                 data-budget-list-mount
                 class="list list-bordered rounded margin-1"
                 />
-            <button 
-                data-new-budget
-                class="left padding-2 rounded link"
-                >New Budget</button>
+            <% if (has_budgets) { %>
+                <button data-new-budget class="padding-2 left link">New Budget</button>
+            <% } else { %> 
+                <div class="padding-2">
+                    <button data-new-budget class="padding-2 rounded primary wide block">New Budget</button>
+                </div>
+            <% } %>
         </script>
 
         <script id="budget" type="text/html">

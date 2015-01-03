@@ -1,1 +1,1 @@
-cp deploy/* /home/justin/Dropbox/Public/miniperdiem/
+cp -r deploy/* /home/justin/Dropbox/Public/miniperdiem/

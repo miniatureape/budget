@@ -169,7 +169,7 @@ var ResetView = Backbone.View.extend({
 
     resetWeek: function() {
 
-        var allowance = prompt("How much can you spend this week?", this.model.get('allowance'));
+        var allowance = prompt("How much can you spend this week?", this.model.get('allowance') || '');
         allowance = parseInt(allowance, 10);
 
         if (_.isNaN(allowance)) {

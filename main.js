@@ -113,11 +113,21 @@ var ExpenseForm = Backbone.View.extend({
     },
 
     handleSubmit: function(e) {
+        var val = this.$el.val();
         if ([KEYS.tab, KEYS.enter].indexOf(e.keyCode) == -1) return;
-        if (!this.$el.val()) return;
+        if (!val) return;
 
-        var amount = Math.ceil(parseFloat(this.$el.val()));
+
+        var amount = Math.ceil(parseFloat(val));
         
+        // Special cases until I get some UI in here
+        if (amount === 2015) {
+            this.budget.destroy();
+            this.app.set('current_budget', null);
+            this.app.save();
+            return;
+        }
+
         var expense = this.collection.create({
             amount: amount,
             date: (new Date).getTime(),

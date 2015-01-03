@@ -170,3 +170,6 @@ input[type="number"] {
     border: none;
 }
 
+.clearfix {
+    overflow: hidden;
+}

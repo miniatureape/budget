@@ -198,6 +198,7 @@ var TotalView = Backbone.View.extend({
 var BudgetListView = Backbone.View.extend({
 
     template: _.template($('#budget-row').html()),
+    totalTemplate: _.template($('#total-row').html()),
 
     events: {
         'click [data-select-budget]': 'selectBudget'
@@ -213,6 +214,15 @@ var BudgetListView = Backbone.View.extend({
             var data = _.extend({id: budget.id}, budget.toJSON());
             return memo + this.template(data);
         }, '', this);
+
+        var grand_total = this.budgets.reduce(function(memo, budget) {
+            return memo + budget.get('cummulative_total');
+        }, 0);
+
+        console.log(grand_total);
+
+        html += this.totalTemplate({grand_total: grand_total});
+
         this.$el.html(html);
     }, 
 

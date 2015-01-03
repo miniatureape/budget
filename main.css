@@ -32,6 +32,10 @@ body, html {
     width: 33.3%;
 }
 
+h1 {
+    font-size: 18px;
+}
+
 button {
     background: none;
     border: 1px solid;

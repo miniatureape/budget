@@ -10,7 +10,44 @@
     </head>
     <body>
 
-        <div class="wrapper">
+        <div data-app class="wrapper"></div>
+
+        <!-- Templates -->
+
+        <script id="expense-row" type="text/html">
+            <tr id="<%= id %>" data-expense-action>
+                <td><%= fmt_date %></td>
+                <td>$ <%= amount %></td>
+                <td><%= running_total %></td>
+            </tr>
+        </script>
+
+        <script id="week-view" type="text/html">
+            <div class="left width-3 stat-block"><%= allowance %></div>
+            <div class="left width-3 stat-block"><%= spent %></div>
+            <div class="left width-3 stat-block"><%= difference %></div>
+        </script>
+
+        <script id="expenses-empty" type="text/html">
+            <tr>
+                <td colspan="3">
+                    <div class="strong center padding-2">Log expenses below.</div>
+                </td>
+            </tr>
+        </script>
+
+        <script id="budget-row" type="text/html">
+            <div data-select-budget id="<%= id %>">
+                <%= name %> <%= cummulative_total %>
+            </div>
+        </script>
+
+        <script id="budget-selection" type="text/html">
+            <h1 class="center padding-2">Budgets</h1>
+            <div data-budget-list-mount></div>
+        </script>
+
+        <script id="budget" type="text/html">
             <div class="row padding-1">
                 <table 
                     class="table table-bordered rounded">
@@ -45,30 +82,6 @@
                     class="right padding-2 rounded link"
                     >Start New Week</button>
             </div>
-        </div>
-
-        <!-- Templates -->
-
-        <script id="expense-row" type="text/html">
-            <tr id="<%= id %>" data-expense-action>
-                <td><%= fmt_date %></td>
-                <td>$ <%= amount %></td>
-                <td><%= running_total %></td>
-            </tr>
-        </script>
-
-        <script id="week-view" type="text/html">
-            <div class="left width-3 stat-block"><%= allowance %></div>
-            <div class="left width-3 stat-block"><%= spent %></div>
-            <div class="left width-3 stat-block"><%= difference %></div>
-        </script>
-
-        <script id="expenses-empty" type="text/html">
-            <tr>
-                <td colspan="3">
-                    <div class="strong center padding-2">Log expenses below.</div>
-                </td>
-            </tr>
         </script>
 
         <script src="main.TIMESTAMP.js"></script>

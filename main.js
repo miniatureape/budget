@@ -157,7 +157,7 @@ var ResetView = Backbone.View.extend({
         allowance = parseInt(allowance, 10);
 
         if (_.isNaN(allowance)) {
-            return;
+            allowance = 0;
         }
 
         var model;
@@ -242,6 +242,11 @@ var SelectionView = Backbone.View.extend({
 
     createNewBudget: function() {
         var budgetName = prompt("Name your budget", "Personal");
+
+        if (!budgetName) {
+            return;
+        }
+
         var budget = this.budgets.create({name: budgetName});
         budget.save();
         this.app.set('current_budget', budget.id);

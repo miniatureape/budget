@@ -15,10 +15,6 @@ var AppModel = Backbone.Model.extend({
     localStorage: new Backbone.LocalStorage("AppModel"),
     defaults: { 
         current_budget: null,
-        grand_total: 0
-    },
-    incrementTotal: function(amount) {
-        this.set('grand_total', this.get('grand_total') + amount);
     },
 });
 
@@ -63,6 +59,7 @@ var ExpensesView = Backbone.View.extend({
     emptyTemplate:  _.template($('#expenses-empty').html()),
     initialize: function(opts) {
         this.expenses = opts.expenses;
+        this.filtered_expenses = opts.filtered_expenses;
         this.budget = opts.budget;
         this.listenTo(this.expenses, 'add remove reset sync', this.render);
     },
@@ -82,7 +79,7 @@ var ExpensesView = Backbone.View.extend({
     },
     renderExpenses: function() {
         var parts = [];
-        var html = this.expenses.reduce(function(memo, expense) {
+        var html = _.reduce(this.expenses.where({'budget': this.budget.id}), function(memo, expense) {
             var data = _.extend({}, expense.serializeData(), {
                 running_total: this.budget.get('allowance') - (expense.get('amount') + memo),
                 id: expense.id
@@ -95,7 +92,7 @@ var ExpensesView = Backbone.View.extend({
         this.$el.html(parts.join(''));
     },
     render: function() {
-        if (this.expenses.isEmpty()) {
+        if (_.isEmpty(this.expenses.where({'budget': this.budget.id}))) {
             this.renderEmpty();
         } else {
             this.renderExpenses();
@@ -121,7 +118,7 @@ var ExpenseForm = Backbone.View.extend({
 
         var amount = Math.ceil(parseFloat(this.$el.val()));
         
-        this.collection.create({
+        var expense = this.collection.create({
             amount: amount,
             date: (new Date).getTime(),
             budget: this.budget.id
@@ -165,7 +162,7 @@ var ResetView = Backbone.View.extend({
 
         var model;
 
-        while (model = this.expenses.first()) {
+        while (model = this.expenses.where({'budget': this.model.id}).pop()) {
             model.destroy();
         }
 
@@ -204,7 +201,7 @@ var BudgetListView = Backbone.View.extend({
     render: function() {
         var html = this.budgets.reduce(function(memo, budget) {
             var data = _.extend({id: budget.id}, budget.toJSON());
-            return this.template(data);
+            return memo + this.template(data);
         }, '', this);
         this.$el.html(html);
     }, 
@@ -212,6 +209,7 @@ var BudgetListView = Backbone.View.extend({
     selectBudget: function(e) {
         var id  = e.currentTarget.id;
         this.app.set('current_budget', id);
+        this.app.save();
     },
 
 });
@@ -219,6 +217,10 @@ var BudgetListView = Backbone.View.extend({
 var SelectionView = Backbone.View.extend({
 
     template: _.template($('#budget-selection').html()),
+
+    events: {
+        'click [data-new-budget]': 'createNewBudget'
+    },
 
     initialize: function(opts) {
         this.app = opts.app;
@@ -237,20 +239,37 @@ var SelectionView = Backbone.View.extend({
 
         budgetListView.render();
     },
+
+    createNewBudget: function() {
+        var budgetName = prompt("Name your budget", "Personal");
+        var budget = this.budgets.create({name: budgetName});
+        budget.save();
+        this.app.set('current_budget', budget.id);
+        this.app.save();
+    },
 });
 
 var BudgetView = Backbone.View.extend({
 
     template: _.template($('#budget').html()),
 
+    events: {
+        'click [data-show-selection]': 'showSelection'
+    },
+
     initialize: function(opts) {
         this.app = opts.app;
         this.expenses = opts.expenses;
     },
 
+    showSelection: function() {
+        this.app.set('current_budget', null);
+        this.app.save();
+    },
+
     render: function() {
 
-        this.$el.html(this.template());
+        this.$el.html(this.template(this.model.toJSON()));
 
         var expensesView = new ExpensesView({
             el: this.$el.find('[data-expense-list]'),
@@ -265,20 +284,20 @@ var BudgetView = Backbone.View.extend({
 
         var allowanceView = new AllowanceView({
             el: this.$el.find('[data-allowance-mount]'),
-            budget: this.model
+            budget: this.model,
         });
 
         var expenseForm = new ExpenseForm({
             el: this.$el.find('[data-expense-form]'),
             app: this.app,
             budget: this.model,
-            collection: this.expenses
+            collection: this.expenses,
         });
 
         var resetView = new ResetView({ 
             el: this.$el.find('[data-reset-mount]'),
             model: this.model,
-            expenses: this.expenses
+            expenses: this.expenses,
         });
 
         expensesView.render();
@@ -302,34 +321,40 @@ var AppView = Backbone.View.extend({
         this.budgets = opts.budgets;
         this.expenses = opts.expenses;
         this.listenTo(this.model, 'change:current_budget', this.render);
+        this.innerView = null;
     },
 
     render: function() {
-        this.$el.empty();
 
-        var view, 
-            currentBudget = this.model.get('current_budget');
+        if (this.innerView) {
+            this.innerView.undelegateEvents();
+        }
+
+        var mountElem = this.$el.find('[data-view-region]');
+
+        var currentBudget = this.model.get('current_budget');
 
         if (_.isNull(currentBudget)) {
 
-            var view = new SelectionView({
-                el: this.$el,
+            this.innerView = new SelectionView({
+                el: mountElem,
                 app: this.model,
                 budgets: this.budgets
             });
 
         } else {
+
             var budget = this.budgets.get(currentBudget);
-            var view = new BudgetView({
-                el: this.$el,
+            this.innerView = new BudgetView({
+                el: mountElem,
                 app: this.model,
                 model: budget,
-                expenses: new Expenses(this.expenses.where({budget: budget.id}))
+                expenses: this.expenses
             });
 
         }
 
-        view.render();
+        this.innerView.render();
     }
 })
 
@@ -339,15 +364,9 @@ function main() {
     var expenses = new Expenses();
     var budgets = new Budgets();
 
-    var fetch = app.fetch();
+    app.fetch();
     expenses.fetch();
-    var budgetFetch = budgets.fetch();
-
-    /*
-    fetch.fail(function() {
-        resetView.resetWeek();
-    });
-    */
+    budgets.fetch();
 
     var appView = new AppView({
         el: $('[data-app]'),
@@ -356,17 +375,7 @@ function main() {
         expenses: expenses,
     });
 
-    budgetFetch.done(function(resp) {
-        if (!resp.length) {
-            var budgetName = prompt("Name your budget", "Personal");
-            var budget = budgets.create({name: budgetName});
-            budget.save();
-            app.set('current_budget', budget.id);
-            app.incrementTotal(budget.get('allowance'));
-            app.save();
-        }
-        appView.render();
-    });
+    appView.render();
 
 }
 

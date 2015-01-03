@@ -149,3 +149,15 @@ input[type="number"] {
     color: #2980b9;
     border: none;
 }
+
+.list {
+    list-style-type: none;
+}
+
+.list-bordered {
+    border: 1px solid #ddd;
+}
+
+.list-bordered:empty {
+    border: none;
+}

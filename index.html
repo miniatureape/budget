@@ -10,7 +10,9 @@
     </head>
     <body>
 
-        <div data-app class="wrapper"></div>
+        <div data-app class="wrapper">
+            <div data-view-region ></div>
+        </div>
 
         <!-- Templates -->
 
@@ -37,17 +39,32 @@
         </script>
 
         <script id="budget-row" type="text/html">
-            <div data-select-budget id="<%= id %>">
-                <%= name %> <%= cummulative_total %>
-            </div>
+            <li 
+                data-select-budget 
+                id="<%= id %>"
+                class="padding-2"
+                >
+                <%= name %> <span class="right">$<%= cummulative_total %></span>
+            </li>
         </script>
 
         <script id="budget-selection" type="text/html">
             <h1 class="center padding-2">Budgets</h1>
-            <div data-budget-list-mount></div>
+            <ul 
+                data-budget-list-mount
+                class="list list-bordered rounded padding-1"
+                />
+            <button 
+                data-new-budget
+                class="left padding-2 rounded link"
+                >New Budget</button>
         </script>
 
         <script id="budget" type="text/html">
+            <h1 class="padding-2 center">
+                <button data-show-selection class="left link">Back</button>
+                <%= name %>
+            </h1>
             <div class="row padding-1">
                 <table 
                     class="table table-bordered rounded">

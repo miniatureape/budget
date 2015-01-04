@@ -6,7 +6,10 @@ index.html
 main.css
 main.TIMESTAMP.js
 fontello.css
-font/*
+font/fontello.eot
+font/fontello.svg
+font/fontello.ttf
+font/fontello.woff
 
 # All other resources (e.g. sites) require the user to be online. 
 NETWORK:

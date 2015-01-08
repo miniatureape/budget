@@ -245,12 +245,15 @@ var SelectionView = Backbone.View.extend({
     template: _.template($('#budget-selection').html()),
 
     events: {
-        'click [data-new-budget]': 'createNewBudget'
+        'click [data-new-budget]': 'createNewBudget',
+        'click [data-reset-all]': 'resetAllBudgets'
     },
 
     initialize: function(opts) {
         this.app = opts.app;
         this.budgets = opts.budgets;
+        this.expenses = opts.expenses;
+        this.listenTo(this.budgets, 'change', this.render);
     },
 
     render: function() {
@@ -277,6 +280,25 @@ var SelectionView = Backbone.View.extend({
         budget.save();
         this.app.set('current_budget', budget.id);
         this.app.save();
+    },
+
+    resetAllBudgets: function() {
+
+        if (!confirm("Restart week for all budgets?")) {
+            return;
+        }
+
+        // destroy all expenses
+        var model;
+        while (model = this.expenses.first()) {
+            model.destroy();
+        }
+
+        this.budgets.each(function(budget) {
+            budget.incrementTotal(budget.get('allowance'));
+            budget.save();
+        });
+        
     },
 });
 
@@ -370,7 +392,8 @@ var AppView = Backbone.View.extend({
             this.innerView = new SelectionView({
                 el: mountElem,
                 app: this.model,
-                budgets: this.budgets
+                budgets: this.budgets,
+                expenses: this.expenses,
             });
 
         } else {
@@ -380,7 +403,7 @@ var AppView = Backbone.View.extend({
                 el: mountElem,
                 app: this.model,
                 model: budget,
-                expenses: this.expenses
+                expenses: this.expenses,
             });
 
         }

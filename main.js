@@ -13,8 +13,10 @@ var KEYS = {
 
 var AppModel = Backbone.Model.extend({
     localStorage: new Backbone.LocalStorage("AppModel"),
+
     defaults: { 
         current_budget: null,
+        start_day: null,
     },
 });
 

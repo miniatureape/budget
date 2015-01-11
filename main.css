@@ -92,8 +92,16 @@ button:focus {
 }
 
 .wrapper {
+    position: relative;
     margin: 0 auto;
     max-width: 600px;
+    overflow: hidden;
+}
+
+.app {
+    -webkit-transition: -webkit-transform .2s;
+    top: 0;
+    bottom: 0;
 }
 
 .table {
@@ -190,3 +198,27 @@ input[type="number"] {
 .text-large {
     font-size: 18px;
 }
+
+#modal {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    padding: 10px;
+    -webkit-transform: translateX(100%);
+    -webkit-transition: -webkit-transform .3s;
+}
+
+.wrapper.modal-on #modal {
+    -webkit-transform: translateX(0);
+}
+
+.wrapper.modal-on .app {
+    -webkit-transform: scale(0.8);
+    -webkit-transform-style: preserve-3d;
+    -webkit-perspective: 1000;
+    -webkit-perspective-origin: 50% 50%;
+}
+

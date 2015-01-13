@@ -12,12 +12,32 @@ var KEYS = {
 };
 
 var AppModel = Backbone.Model.extend({
+
     localStorage: new Backbone.LocalStorage("AppModel"),
 
     defaults: { 
         current_budget: null,
         start_day: null,
     },
+
+});
+
+var Modal = Backbone.View.extend({
+
+    initialize: function() {
+        this.model = new Backbone.Model;
+        this.listenTo(this.model, 'change:active', this.render);
+    },
+
+    show: function(view) {
+        this.renderInto(view);
+        this.model.set('active', true);
+    },
+
+    closeModal: function() {
+
+    },
+
 });
 
 var Budget = Backbone.Model.extend({
@@ -106,7 +126,6 @@ var ExpenseForm = Backbone.View.extend({
 
     initialize: function(opts) {
         this.collection = opts.collection;
-        this.app = opts.app;
         this.budget = opts.budget;
     },
 
@@ -125,8 +144,8 @@ var ExpenseForm = Backbone.View.extend({
         // Special cases until I get some UI in here
         if (amount === 2015) {
             this.budget.destroy();
-            this.app.set('current_budget', null);
-            this.app.save();
+            App.set('current_budget', null);
+            App.save();
             return;
         }
 
@@ -214,7 +233,6 @@ var BudgetListView = Backbone.View.extend({
 
     initialize: function(opts) {
         this.budgets = opts.budgets;
-        this.app = opts.app;
     },
 
     render: function() {
@@ -236,8 +254,8 @@ var BudgetListView = Backbone.View.extend({
 
     selectBudget: function(e) {
         var id  = e.currentTarget.id;
-        this.app.set('current_budget', id);
-        this.app.save();
+        App.set('current_budget', id);
+        App.save();
     },
 
 });
@@ -252,7 +270,6 @@ var SelectionView = Backbone.View.extend({
     },
 
     initialize: function(opts) {
-        this.app = opts.app;
         this.budgets = opts.budgets;
         this.expenses = opts.expenses;
         this.listenTo(this.budgets, 'change', this.render);
@@ -265,7 +282,6 @@ var SelectionView = Backbone.View.extend({
         var budgetListView = new BudgetListView({
             el: this.$el.find('[data-budget-list-mount]'),
             budgets: this.budgets,
-            app: this.app
         });
 
         budgetListView.render();
@@ -280,8 +296,8 @@ var SelectionView = Backbone.View.extend({
 
         var budget = this.budgets.create({name: budgetName});
         budget.save();
-        this.app.set('current_budget', budget.id);
-        this.app.save();
+        App.set('current_budget', budget.id);
+        App.save();
     },
 
     resetAllBudgets: function() {
@@ -313,13 +329,12 @@ var BudgetView = Backbone.View.extend({
     },
 
     initialize: function(opts) {
-        this.app = opts.app;
         this.expenses = opts.expenses;
     },
 
     showSelection: function() {
-        this.app.set('current_budget', null);
-        this.app.save();
+        App.set('current_budget', null);
+        App.save();
     },
 
     render: function() {
@@ -344,7 +359,6 @@ var BudgetView = Backbone.View.extend({
 
         var expenseForm = new ExpenseForm({
             el: this.$el.find('[data-expense-form]'),
-            app: this.app,
             budget: this.model,
             collection: this.expenses,
         });
@@ -393,7 +407,6 @@ var AppView = Backbone.View.extend({
 
             this.innerView = new SelectionView({
                 el: mountElem,
-                app: this.model,
                 budgets: this.budgets,
                 expenses: this.expenses,
             });
@@ -403,7 +416,6 @@ var AppView = Backbone.View.extend({
             var budget = this.budgets.get(currentBudget);
             this.innerView = new BudgetView({
                 el: mountElem,
-                app: this.model,
                 model: budget,
                 expenses: this.expenses,
             });
@@ -416,17 +428,17 @@ var AppView = Backbone.View.extend({
 
 function main() {
 
-    var app = new AppModel({id: 1});
+    window.App = new AppModel({id: 1});
     var expenses = new Expenses();
     var budgets = new Budgets();
 
-    app.fetch();
+    App.fetch();
     expenses.fetch();
     budgets.fetch();
 
     var appView = new AppView({
+        model: App,
         el: $('[data-app]'),
-        model: app,
         budgets: budgets,
         expenses: expenses,
     });

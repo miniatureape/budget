@@ -253,7 +253,6 @@ var SelectionView = Backbone.View.extend({
         this.app = opts.app;
         this.budgets = opts.budgets;
         this.expenses = opts.expenses;
-        this.listenTo(this.budgets, 'change', this.render);
     },
 
     render: function() {
@@ -298,6 +297,8 @@ var SelectionView = Backbone.View.extend({
             budget.incrementTotal(budget.get('allowance'));
             budget.save();
         });
+
+        window.location.reload();
         
     },
 });

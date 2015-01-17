@@ -1,11 +1,12 @@
-var $               = require('jquery-browserify');
-var _               = require('underscore');
-var moment          = require('moment');
-var Backbone        = require('backbone');
-Backbone.$          = $;
-Backbone.Marionette = require('backbone.marionette');
-
+var $                 = require('jquery-browserify');
+var _                 = require('underscore');
+var moment            = require('moment');
+var Backbone          = require('backbone');
+Backbone.$            = $;
+Backbone.Marionette   = require('backbone.marionette');
 Backbone.LocalStorage = require('backbone.localstorage');
+
+var M = Backbone.Marionette;
 
 var KEYS = {
     tab: 9,
@@ -105,7 +106,6 @@ var ExpenseForm = Backbone.View.extend({
 
     initialize: function(opts) {
         this.collection = opts.collection;
-        this.app = opts.app;
         this.budget = opts.budget;
     },
 
@@ -124,8 +124,8 @@ var ExpenseForm = Backbone.View.extend({
         // Special cases until I get some UI in here
         if (amount === 2015) {
             this.budget.destroy();
-            this.app.set('current_budget', null);
-            this.app.save();
+            App.set('current_budget', null);
+            App.save();
             return;
         }
 
@@ -213,7 +213,6 @@ var BudgetListView = Backbone.View.extend({
 
     initialize: function(opts) {
         this.budgets = opts.budgets;
-        this.app = opts.app;
     },
 
     render: function() {
@@ -235,8 +234,8 @@ var BudgetListView = Backbone.View.extend({
 
     selectBudget: function(e) {
         var id  = e.currentTarget.id;
-        this.app.set('current_budget', id);
-        this.app.save();
+        App.set('current_budget', id);
+        App.save();
     },
 
 });
@@ -251,7 +250,6 @@ var SelectionView = Backbone.View.extend({
     },
 
     initialize: function(opts) {
-        this.app = opts.app;
         this.budgets = opts.budgets;
         this.expenses = opts.expenses;
     },
@@ -263,7 +261,6 @@ var SelectionView = Backbone.View.extend({
         var budgetListView = new BudgetListView({
             el: this.$el.find('[data-budget-list-mount]'),
             budgets: this.budgets,
-            app: this.app
         });
 
         budgetListView.render();
@@ -278,8 +275,8 @@ var SelectionView = Backbone.View.extend({
 
         var budget = this.budgets.create({name: budgetName});
         budget.save();
-        this.app.set('current_budget', budget.id);
-        this.app.save();
+        App.set('current_budget', budget.id);
+        App.save();
     },
 
     resetAllBudgets: function() {
@@ -313,13 +310,12 @@ var BudgetView = Backbone.View.extend({
     },
 
     initialize: function(opts) {
-        this.app = opts.app;
         this.expenses = opts.expenses;
     },
 
     showSelection: function() {
-        this.app.set('current_budget', null);
-        this.app.save();
+        App.set('current_budget', null);
+        App.save();
     },
 
     render: function() {
@@ -344,7 +340,6 @@ var BudgetView = Backbone.View.extend({
 
         var expenseForm = new ExpenseForm({
             el: this.$el.find('[data-expense-form]'),
-            app: this.app,
             budget: this.model,
             collection: this.expenses,
         });
@@ -370,6 +365,72 @@ var BudgetView = Backbone.View.extend({
     },
 });
 
+var AppLayout = M.LayoutView.extend({
+
+    template: _.template($('#app-layout').html()),
+
+    initialize: function() {
+        this.listenTo(App, 'change:current_module', this.render);
+    },
+
+    regions: {
+        moduleRegion: '[data-module-region]',
+    },
+
+    onRender: function() {
+        var moduleView = this.getModuleView();
+        this.getRegion('moduleRegion').show(moduleView);
+    },
+
+    getModuleView: function() {
+        var currentModule = App.get('current_module');
+        return currentModule === 'budget' ? this.getBudgetLayout() : this.getSelectionLayout();
+    },
+
+    getSelectionLayout: function() {
+        return new SelectionLayout();
+    },
+
+    getBudgetLayout: function() {
+        return new BudgetLayout();
+    }
+
+});
+
+var SelectionLayout = M.LayoutView.extend({
+
+    template: _.template($('#selection-layout').html()),
+
+    regions: {
+        'budgetList': '[data-budget-list-mount]'
+    },
+
+    onShow: function() {
+        this.getRegion('budgetList').show(new BudgetListView({
+            collection: BudgetList
+        }));
+        console.log('showing selection');
+    },
+
+});
+
+var BudgetItemView = M.CollectionView.extend({
+    template: _.template($('#budget-row').html()),
+})
+
+var BudgetListView = M.CollectionView.extend({
+    childView: BudgetItemView
+})
+
+var BudgetLayout = M.LayoutView.extend({
+
+    template: _.template($('#selection-layout').html()),
+
+    onShow: function() {
+        console.log('showing budget');
+    }
+});
+
 var AppView = Backbone.View.extend({
 
     initialize: function(opts) {
@@ -393,7 +454,6 @@ var AppView = Backbone.View.extend({
 
             this.innerView = new SelectionView({
                 el: mountElem,
-                app: this.model,
                 budgets: this.budgets,
                 expenses: this.expenses,
             });
@@ -403,7 +463,6 @@ var AppView = Backbone.View.extend({
             var budget = this.budgets.get(currentBudget);
             this.innerView = new BudgetView({
                 el: mountElem,
-                app: this.model,
                 model: budget,
                 expenses: this.expenses,
             });
@@ -416,13 +475,16 @@ var AppView = Backbone.View.extend({
 
 function main() {
 
-    var app = new AppModel({id: 1});
+    window.App = new AppModel({id: 1});
     var expenses = new Expenses();
     var budgets = new Budgets();
+    window.BudgetList = budgets;
 
-    app.fetch();
+    App.fetch();
     expenses.fetch();
     budgets.fetch();
+
+    /*
 
     var appView = new AppView({
         el: $('[data-app]'),
@@ -432,6 +494,13 @@ function main() {
     });
 
     appView.render();
+    */
+
+    window.appLayout = new AppLayout({
+        el: '[data-app]'
+    });
+
+    appLayout.render();
 
 }
 

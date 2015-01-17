@@ -11,11 +11,21 @@
     </head>
     <body>
 
-        <div data-app class="wrapper">
-            <div data-view-region></div>
-        </div>
+        <div data-app class="wrapper"></div>
 
         <!-- Templates -->
+
+        <script id="app-layout" type="text/html">
+            <div data-module-region></div>
+        </script>
+
+        <script id="selection-layout" type="text/html">
+            <h1 data-header class="center padding-2">Budgets</h1>
+            <ul 
+                data-budget-list-mount
+                class="list list-bordered rounded margin-1"
+                />
+        </script>
 
         <script id="expense-row" type="text/html">
             <tr id="<%= id %>" data-expense-action>

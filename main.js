@@ -1,10 +1,11 @@
-var $                 = require('jquery-browserify');
-var _                 = require('underscore');
-var moment            = require('moment');
-var Backbone          = require('backbone');
+var $               = require('jquery-browserify');
+var _               = require('underscore');
+var moment          = require('moment');
+var Backbone        = require('backbone');
+Backbone.$          = $;
+Backbone.Marionette = require('backbone.marionette');
 
 Backbone.LocalStorage = require('backbone.localstorage');
-Backbone.$            = $;
 
 var KEYS = {
     tab: 9,

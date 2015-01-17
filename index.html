@@ -25,6 +25,8 @@
                 data-budget-list-mount
                 class="list list-bordered rounded margin-1"
                 />
+            <div data-actions></div>
+            <div data-empty></div>
         </script>
 
         <script id="expense-row" type="text/html">
@@ -65,20 +67,15 @@
             </li>
         </script>
 
-        <script id="budget-selection" type="text/html">
-            <h1 class="center padding-2">Budgets</h1>
-            <ul 
-                data-budget-list-mount
-                class="list list-bordered rounded margin-1"
-                />
-            <% if (has_budgets) { %>
-                <button data-new-budget class="padding-2 left link">New budget</button>
-                <button data-reset-all class="padding-2 left link">Restart all budgets</button>
-            <% } else { %> 
-                <div class="padding-2">
-                    <button data-new-budget class="padding-2 rounded primary wide block">New budget</button>
-                </div>
-            <% } %>
+        <script id="empty-selection" type="text/html">
+            <div class="padding-2">
+                <button data-new-budget class="padding-2 rounded primary wide block">New budget</button>
+            </div>
+        </script>
+
+        <script id="selection-module-actions" type="text/html">
+            <button data-new-budget class="padding-2 left link">New budget</button>
+            <button data-reset-all class="padding-2 left link">Restart all budgets</button>
         </script>
 
         <script id="budget" type="text/html">

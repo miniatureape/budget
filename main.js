@@ -13,6 +13,11 @@ var KEYS = {
     enter: 13,
 };
 
+var MODULES = {
+    budget: 'budget',
+    selection: 'selection'
+};
+
 var AppModel = Backbone.Model.extend({
     localStorage: new Backbone.LocalStorage("AppModel"),
     defaults: { 
@@ -240,67 +245,6 @@ var BudgetListView = Backbone.View.extend({
 
 });
 
-var SelectionView = Backbone.View.extend({
-
-    template: _.template($('#budget-selection').html()),
-
-    events: {
-        'click [data-new-budget]': 'createNewBudget',
-        'click [data-reset-all]': 'resetAllBudgets'
-    },
-
-    initialize: function(opts) {
-        this.budgets = opts.budgets;
-        this.expenses = opts.expenses;
-    },
-
-    render: function() {
-
-        this.$el.html(this.template({has_budgets: !this.budgets.isEmpty()}));
-
-        var budgetListView = new BudgetListView({
-            el: this.$el.find('[data-budget-list-mount]'),
-            budgets: this.budgets,
-        });
-
-        budgetListView.render();
-    },
-
-    createNewBudget: function() {
-        var budgetName = prompt("Name your budget", "Personal");
-
-        if (!budgetName) {
-            return;
-        }
-
-        var budget = this.budgets.create({name: budgetName});
-        budget.save();
-        App.set('current_budget', budget.id);
-        App.save();
-    },
-
-    resetAllBudgets: function() {
-
-        if (!confirm("Restart week for all budgets?")) {
-            return;
-        }
-
-        // destroy all expenses
-        var model;
-        while (model = this.expenses.first()) {
-            model.destroy();
-        }
-
-        this.budgets.each(function(budget) {
-            budget.incrementTotal(budget.get('allowance'));
-            budget.save();
-        });
-
-        window.location.reload();
-        
-    },
-});
-
 var BudgetView = Backbone.View.extend({
 
     template: _.template($('#budget').html()),
@@ -384,7 +328,7 @@ var AppLayout = M.LayoutView.extend({
 
     getModuleView: function() {
         var currentModule = App.get('current_module');
-        return currentModule === 'budget' ? this.getBudgetLayout() : this.getSelectionLayout();
+        return currentModule === MODULES.budget ? this.getBudgetLayout() : this.getSelectionLayout();
     },
 
     getSelectionLayout: function() {
@@ -402,20 +346,94 @@ var SelectionLayout = M.LayoutView.extend({
     template: _.template($('#selection-layout').html()),
 
     regions: {
-        'budgetList': '[data-budget-list-mount]'
+        'budgetList' : '[data-budget-list-mount]',
+        'actions'    : '[data-actions]',
+        'empty'      : '[data-empty]',
+    },
+
+    events: {
+        'click [data-new-budget]': 'createNewBudget',
     },
 
     onShow: function() {
+        BudgetList.isEmpty() ?  this.showEmpty() : this.showBudgetList();
+
+    },
+
+    showEmpty: function() {
+        this.getRegion('empty').show(new EmptySelectionView());
+    },
+
+    showBudgetList: function() {
         this.getRegion('budgetList').show(new BudgetListView({
             collection: BudgetList
         }));
-        console.log('showing selection');
+        this.getRegion('actions').show(new SelectionModuleActionsView());
+    },
+
+    createNewBudget: function() {
+
+        var budgetName = prompt("Name your budget", "Personal");
+
+        if (!budgetName) {
+            return;
+        }
+
+        var budget = BudgetList.create({name: budgetName});
+        budget.save();
+        App.set('current_module', MODULES.budget);
+        App.set('current_budget', budget.id);
+        App.save();
     },
 
 });
 
-var BudgetItemView = M.CollectionView.extend({
+var SelectionModuleActionsView = M.ItemView.extend({
+
+    events: {
+        'click [data-reset-all]': 'resetAllBudgets'
+    },
+
+    template: _.template($('#selection-module-actions').html()),
+
+    resetAllBudgets: function() {
+
+        if (!confirm("Restart week for all budgets?")) {
+            return;
+        }
+
+        // destroy all expenses
+        var model;
+        while (model = ExpensesList.first()) {
+            model.destroy();
+        }
+
+        BudgetList.each(function(budget) {
+            budget.incrementTotal(budget.get('allowance'));
+            budget.save();
+        });
+
+        window.location.reload();
+    }
+});
+
+var EmptySelectionView = M.ItemView.extend({
+    template: _.template($('#empty-selection').html())
+});
+
+var BudgetItemView = M.ItemView.extend({
+
     template: _.template($('#budget-row').html()),
+
+    events: {
+        'click [data-select-budget]': 'selectBudget'
+    },
+
+    selectBudget: function(e) {
+        App.set('current_module', MODULES.budget);
+        App.set('current_budget', $(e.currentTarget).attr('id'));
+    },
+
 })
 
 var BudgetListView = M.CollectionView.extend({
@@ -431,70 +449,17 @@ var BudgetLayout = M.LayoutView.extend({
     }
 });
 
-var AppView = Backbone.View.extend({
-
-    initialize: function(opts) {
-        this.budgets = opts.budgets;
-        this.expenses = opts.expenses;
-        this.listenTo(this.model, 'change:current_budget', this.render);
-        this.innerView = null;
-    },
-
-    render: function() {
-
-        if (this.innerView) {
-            this.innerView.undelegateEvents();
-        }
-
-        var mountElem = this.$el.find('[data-view-region]');
-
-        var currentBudget = this.model.get('current_budget');
-
-        if (_.isNull(currentBudget)) {
-
-            this.innerView = new SelectionView({
-                el: mountElem,
-                budgets: this.budgets,
-                expenses: this.expenses,
-            });
-
-        } else {
-
-            var budget = this.budgets.get(currentBudget);
-            this.innerView = new BudgetView({
-                el: mountElem,
-                model: budget,
-                expenses: this.expenses,
-            });
-
-        }
-
-        this.innerView.render();
-    }
-})
-
 function main() {
 
     window.App = new AppModel({id: 1});
     var expenses = new Expenses();
     var budgets = new Budgets();
     window.BudgetList = budgets;
+    window.ExpensesList = expenses;
 
     App.fetch();
     expenses.fetch();
     budgets.fetch();
-
-    /*
-
-    var appView = new AppView({
-        el: $('[data-app]'),
-        model: app,
-        budgets: budgets,
-        expenses: expenses,
-    });
-
-    appView.render();
-    */
 
     window.appLayout = new AppLayout({
         el: '[data-app]'

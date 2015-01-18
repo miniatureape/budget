@@ -317,6 +317,10 @@ var BudgetLayout = M.LayoutView.extend({
         actions: '[data-budget-actions]',
     },
 
+    events: {
+        'click [data-show-selection]': 'showBudgetSelection'
+    },
+
     onShow: function() {
         this.getRegion('expenseList').show(new ExpenseListView({
             collection: ExpensesList,
@@ -326,6 +330,13 @@ var BudgetLayout = M.LayoutView.extend({
             model: this.model
         }));
         this.getRegion('actions').show(new BudgetActionsView());
+    },
+
+    showBudgetSelection: function() {
+        App.set({
+            'current_budget': null,
+            'current_module': MODULES.selection
+        });
     },
 
 });

@@ -322,8 +322,9 @@ var BudgetLayout = M.LayoutView.extend({
             collection: ExpensesList,
             model: this.model
         }));
-        // TODO implement BalanceView
-        // this.getRegion('balance').show(new BalanceView());
+        this.getRegion('balance').show(new BalanceView({
+            model: this.model
+        }));
         this.getRegion('actions').show(new BudgetActionsView());
     },
 
@@ -458,6 +459,7 @@ var ExpenseListView = M.CompositeView.extend({
 });
 
 var BalanceView = M.ItemView.extend({
+    template: '#budget-balance',
 });
 
 var BudgetActionsView = M.ItemView.extend({

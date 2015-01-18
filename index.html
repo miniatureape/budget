@@ -109,8 +109,10 @@
                 <%= name %>
             </h1>
             <div data-expense-list></div>
-            <div data-balance></div>
-            <div data-budget-actions></div>
+            <div class="padding-1 row">
+                <div data-balance></div>
+                <div data-budget-actions></div>
+            </div>
         </script>
 
         <script id="no-expenses" type="text/html">
@@ -121,16 +123,17 @@
             </tr>
         </script>
 
+        <script id="budget-balance" type="text/html">
+            <span class="right padding-2">
+                <span class="strong">Balance:</span> <%= cummulative_total %>
+            </span>
+        </script>
+
         <script id="budget-actions" type="text/html">
-            <div class="padding-1 row">
-                <span class="right padding-2">
-                    <span class="strong">Balance:</span> <span data-running-total-mount></span>
-                </span>
-                <button 
-                    data-reset-mount
-                    class="left padding-2 rounded link"
-                    >Start New Week</button>
-            </div>
+            <button 
+                data-reset-mount
+                class="left padding-2 rounded link"
+                >Start New Week</button>
         </script>
 
         <script src="main.TIMESTAMP.js"></script>

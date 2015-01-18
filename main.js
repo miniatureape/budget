@@ -217,7 +217,6 @@ var SelectionLayout = M.LayoutView.extend({
 
     onShow: function() {
         BudgetList.isEmpty() ?  this.showEmpty() : this.showBudgetList();
-
     },
 
     showEmpty: function() {
@@ -297,8 +296,11 @@ var BudgetItemView = M.ItemView.extend({
     },
 
     selectBudget: function(e) {
-        App.set('current_module', MODULES.budget);
-        App.set('current_budget', $(e.currentTarget).attr('id'));
+        App.set({
+            'current_module': MODULES.budget,
+            'current_budget': $(e.currentTarget).attr('id'),
+        });
+        App.save();
     },
 
 })
@@ -337,6 +339,7 @@ var BudgetLayout = M.LayoutView.extend({
             'current_budget': null,
             'current_module': MODULES.selection
         });
+        App.save();
     },
 
 });

@@ -190,3 +190,34 @@ input[type="number"] {
 .text-large {
     font-size: 18px;
 }
+
+.wrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-region {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    width: 100%;
+    -webkit-transform: translate3d(0, 0, 0);
+    -webkit-transition: left .2s;
+}
+
+.module-region {
+    -webkit-transition: transform .2s;
+}
+
+.modal-active .module-region {
+    -webkit-transform: scale(.8, .8);
+    -webkit-transform-origin: center center;
+}
+
+.modal-active .modal-region {
+    left: 0;
+}
+
+.data-actions {
+    overflow: hidden;
+}

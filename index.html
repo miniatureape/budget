@@ -16,7 +16,8 @@
         <!-- Templates -->
 
         <script id="app-layout" type="text/html">
-            <div data-module-region></div>
+            <div data-module-region class="module-region"></div>
+            <div data-modal-region class="modal-region">Here I am</div>
         </script>
 
         <script id="expenses-table" type="text/html">
@@ -54,7 +55,7 @@
                 class="list list-bordered rounded margin-1"
                 />
             <div data-grand-total></div>
-            <div data-actions></div>
+            <div data-actions class="data-actions"></div>
             <div data-empty></div>
         </script>
 
@@ -134,6 +135,10 @@
                 data-reset-mount
                 class="left padding-2 rounded link"
                 >Start New Week</button>
+        </script>
+
+        <script id="create-budget" type="text/html">
+            Dude, lets make a buuuuudget!
         </script>
 
         <script src="main.TIMESTAMP.js"></script>

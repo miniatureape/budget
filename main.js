@@ -112,6 +112,10 @@ var Expenses = Backbone.Collection.extend({
 
 /* Views */
 
+var CreateBudgetModal = M.ItemView.extend({
+    template: '#create-budget'
+});
+
 var AppLayout = M.LayoutView.extend({
 
     template: '#app-layout',
@@ -121,7 +125,8 @@ var AppLayout = M.LayoutView.extend({
     },
 
     regions: {
-        moduleRegion: '[data-module-region]',
+        moduleRegion : '[data-module-region]',
+        modalRegion  : '[data-modal-region]',
     },
 
     onRender: function() {
@@ -141,7 +146,12 @@ var AppLayout = M.LayoutView.extend({
     getBudgetLayout: function() {
         var currentBudget = App.get('current_budget'); 
         return new BudgetLayout({model: BudgetList.get(currentBudget)});
-    }
+    },
+
+    showModal: function(modalView) {
+        this.getRegion('modalRegion').show(modalView);
+        this.$el.toggleClass('modal-active');
+    },
 
 });
 
@@ -183,8 +193,17 @@ var SelectionLayout = M.LayoutView.extend({
         // TODO prompt -> Modal
         // but allowance into a helper method
 
+        appLayout.showModal(
+            new CreateBudgetModal()
+        );
+
+        return;
+
+        /*
         var budgetName   = prompt("Name your budget", "Spending Money");
         var allowance = parseInt(prompt("How much money?", 100), 10);
+        */
+
 
         if (!budgetName) {
             return;
@@ -439,7 +458,10 @@ var GrandTotalView = M.ItemView.extend({
 
 function main() {
 
+    // TODO cleanup all this global stuff, naming conventions
+    
     window.App = new AppModel({id: 1});
+
     var expenses = new Expenses();
     var budgets = new Budgets();
     window.BudgetList = budgets;
@@ -450,7 +472,8 @@ function main() {
     budgets.fetch();
 
     window.appLayout = new AppLayout({
-        el: '[data-app]'
+        el: '[data-app]',
+        model: App,
     });
 
     appLayout.render();

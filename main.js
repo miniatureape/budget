@@ -109,105 +109,6 @@ var Expenses = Backbone.Collection.extend({
 
 /* Backbone Views */
 
-var ExpensesView = Backbone.View.extend({
-
-    template:  _.template($('#expense-row').html()),
-
-    emptyTemplate:  _.template($('#expenses-empty').html()),
-
-    initialize: function(opts) {
-        this.expenses = opts.expenses;
-        this.budget = opts.budget;
-        this.listenTo(this.expenses, 'add remove reset sync', this.render);
-    },
-
-    events: {
-        'click [data-expense-action]': 'remove',
-    },
-
-    remove: function(e) {
-        if (confirm("Remove this expense?")) {
-            var expense = this.expenses.get(e.currentTarget.id);
-            this.budget.incrementTotal(expense.get('amount'));
-            this.budget.save();
-            this.expenses.remove(expense);
-        }
-    },
-
-    renderEmpty: function() {
-        this.$el.html(this.emptyTemplate());
-    },
-
-    renderExpenses: function() {
-        var parts = [];
-        var html = _.reduce(this.expenses.where({'budget': this.budget.id}), function(memo, expense) {
-            var data = _.extend({}, expense.serializeData(), {
-                running_total: this.budget.get('allowance') - (expense.get('amount') + memo),
-                id: expense.id
-            });
-            parts.push(this.template(data));
-
-            return memo + expense.get('amount');
-        }, 0, this);
-
-        this.$el.html(parts.join(''));
-    },
-
-    render: function() {
-        if (_.isEmpty(this.expenses.where({'budget': this.budget.id}))) {
-            this.renderEmpty();
-        } else {
-            this.renderExpenses();
-        }
-    }
-});
-
-var ExpenseForm = Backbone.View.extend({
-
-    initialize: function(opts) {
-        this.collection = opts.collection;
-        this.budget = opts.budget;
-    },
-
-    events: {
-        keydown: 'handleSubmit'
-    },
-
-    handleSubmit: function(e) {
-        var val = this.$el.val();
-        if ([KEYS.tab, KEYS.enter].indexOf(e.keyCode) == -1) return;
-        if (!val) return;
-
-
-        var amount = Math.ceil(parseFloat(val));
-        
-        // Special cases until I get some UI in here
-        if (amount === 2015) {
-            this.budget.destroy();
-            App.set('current_budget', null);
-            App.save();
-            return;
-        }
-
-        if (amount === 666) {
-            window.localStorage.clear();
-            window.location.reload();
-            return;
-        }
-
-        var expense = this.collection.create({
-            amount: amount,
-            date: (new Date).getTime(),
-            budget: this.budget.id
-        }).save();
-
-        this.budget.incrementTotal(-amount);
-        this.budget.save();
-
-        this.$el.val('');
-    }
-});
-
 var AllowanceView = Backbone.View.extend({
 
     initialize: function(opts) {
@@ -218,6 +119,7 @@ var AllowanceView = Backbone.View.extend({
     render: function() {
         this.$el.html(this.budget.get('allowance'));
     }
+
 });
 
 var ResetView = Backbone.View.extend({

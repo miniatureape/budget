@@ -42,16 +42,17 @@ var Budget = Backbone.Model.extend({
     },
 
     storeExpense: function(amount) {
-
-        ExpensesList.create({
+        var expense = ExpensesList.create({
             amount: amount,
             date: (new Date).getTime(),
             budget: this.id
-        }, {silent: true}).save();
+        }, {silent: true});
+        expense.save();
 
         this.incrementTotal(-amount);
         this.save();
 
+        ExpensesList.trigger('add', expense, ExpensesList);
     }
 });
 
@@ -427,18 +428,33 @@ var ExpenseListView = M.CompositeView.extend({
      */
 
     onBeforeRenderCollection: function() {
+        this.addRunningTotal();
+    },
+
+    onRenderCollection: function() {
+        this.removeRunningTotal();
+    },
+
+    onBeforeAddChild: function() {
+        this.addRunningTotal();
+    },
+
+    onAddChild: function() {
+        this.removeRunningTotal();
+    },
+
+    addRunningTotal: function() {
         var startAmount = this.model.get('allowance');
         this.collection.each(function(expense) {
             expense.set('running_total', startAmount -= expense.get('amount'), {silent: true});
         })
     },
 
-    onRenderCollection: function() {
+    removeRunningTotal: function() {
         this.collection.each(function(expense) {
             expense.unset('running_total', {silent: true});
         });
-    },
-
+    }
 });
 
 var BalanceView = M.ItemView.extend({

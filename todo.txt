@@ -1,0 +1,1 @@
+Implement the total row on selection screen next

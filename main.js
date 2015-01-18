@@ -19,33 +19,68 @@ var MODULES = {
 };
 
 var AppModel = Backbone.Model.extend({
+
     localStorage: new Backbone.LocalStorage("AppModel"),
+
     defaults: { 
+        current_module: null,
         current_budget: null,
     },
+
 });
 
 var Budget = Backbone.Model.extend({
+
     defaults: { 
+        name: null,
         allowance: null,
         cummulative_total: 0,
     },
+
     incrementTotal: function(amount) {
         this.set('cummulative_total', this.get('cummulative_total') + amount);
+    },
+
+    storeExpense: function(amount) {
+
+        ExpensesList.create({
+            amount: amount,
+            date: (new Date).getTime(),
+            budget: this.id
+        }, {silent: true}).save();
+
+        this.incrementTotal(-amount);
+        this.save();
+
     }
 });
 
 var Budgets = Backbone.Collection.extend({
+
     model: Budget,
+
     localStorage: new Backbone.LocalStorage("Budgets"),
+
+    grandTotal: function() {
+        return this.reduce(function(memo, budget) {
+            return memo + budget.get('cummulative_total');
+        }, 0);
+    },
+
+    renew: function() {
+        this.each(function(budget) {
+            budget.incrementTotal(budget.get('allowance'));
+            budget.save();
+        });
+    }
 });
 
 var Expense = Backbone.Model.extend({
 
     defaults: { 
-        amount: 0,
-        date: null,
-        budget: null
+        amount : 0,
+        date   : null, // Three letter DOW
+        budget : null, // Association to a Budget model.
     },
 
     serializeData: function() {
@@ -57,22 +92,39 @@ var Expense = Backbone.Model.extend({
 });
 
 var Expenses = Backbone.Collection.extend({
+
     localStorage: new Backbone.LocalStorage("Expenses"),
-    model: Expense
+
+    model: Expense,
+
+    destroyAll: function() {
+        var model;
+
+        while (model = this.first()) {
+            model.destroy();
+        }
+    }
+
 });
 
+/* Backbone Views */
+
 var ExpensesView = Backbone.View.extend({
+
     template:  _.template($('#expense-row').html()),
+
     emptyTemplate:  _.template($('#expenses-empty').html()),
+
     initialize: function(opts) {
         this.expenses = opts.expenses;
-        this.filtered_expenses = opts.filtered_expenses;
         this.budget = opts.budget;
         this.listenTo(this.expenses, 'add remove reset sync', this.render);
     },
+
     events: {
         'click [data-expense-action]': 'remove',
     },
+
     remove: function(e) {
         if (confirm("Remove this expense?")) {
             var expense = this.expenses.get(e.currentTarget.id);
@@ -81,9 +133,11 @@ var ExpensesView = Backbone.View.extend({
             this.expenses.remove(expense);
         }
     },
+
     renderEmpty: function() {
         this.$el.html(this.emptyTemplate());
     },
+
     renderExpenses: function() {
         var parts = [];
         var html = _.reduce(this.expenses.where({'budget': this.budget.id}), function(memo, expense) {
@@ -98,6 +152,7 @@ var ExpensesView = Backbone.View.extend({
 
         this.$el.html(parts.join(''));
     },
+
     render: function() {
         if (_.isEmpty(this.expenses.where({'budget': this.budget.id}))) {
             this.renderEmpty();
@@ -207,111 +262,11 @@ var TotalView = Backbone.View.extend({
     }
 })
 
-var BudgetListView = Backbone.View.extend({
-
-    template: _.template($('#budget-row').html()),
-    totalTemplate: _.template($('#total-row').html()),
-
-    events: {
-        'click [data-select-budget]': 'selectBudget'
-    },
-
-    initialize: function(opts) {
-        this.budgets = opts.budgets;
-    },
-
-    render: function() {
-        var html = this.budgets.reduce(function(memo, budget) {
-            var data = _.extend({id: budget.id}, budget.toJSON());
-            return memo + this.template(data);
-        }, '', this);
-
-        if (this.budgets.length) {
-            var grand_total = this.budgets.reduce(function(memo, budget) {
-                return memo + budget.get('cummulative_total');
-            }, 0);
-
-            html += this.totalTemplate({grand_total: grand_total});
-        }
-
-        this.$el.html(html);
-    }, 
-
-    selectBudget: function(e) {
-        var id  = e.currentTarget.id;
-        App.set('current_budget', id);
-        App.save();
-    },
-
-});
-
-var BudgetView = Backbone.View.extend({
-
-    template: _.template($('#budget').html()),
-
-    events: {
-        'click [data-show-selection]': 'showSelection'
-    },
-
-    initialize: function(opts) {
-        this.expenses = opts.expenses;
-    },
-
-    showSelection: function() {
-        App.set('current_budget', null);
-        App.save();
-    },
-
-    render: function() {
-
-        this.$el.html(this.template(this.model.toJSON()));
-
-        var expensesView = new ExpensesView({
-            el: this.$el.find('[data-expense-list]'),
-            budget: this.model,
-            expenses: this.expenses,
-        });
-
-        var totalView = new TotalView({ 
-            el: this.$el.find('[data-running-total-mount]'),
-            model: this.model,
-        });
-
-        var allowanceView = new AllowanceView({
-            el: this.$el.find('[data-allowance-mount]'),
-            budget: this.model,
-        });
-
-        var expenseForm = new ExpenseForm({
-            el: this.$el.find('[data-expense-form]'),
-            budget: this.model,
-            collection: this.expenses,
-        });
-
-        var resetView = new ResetView({ 
-            el: this.$el.find('[data-reset-mount]'),
-            model: this.model,
-            expenses: this.expenses,
-        });
-
-        expensesView.render();
-        totalView.render();
-        allowanceView.render();
-        expenseForm.render();
-        resetView.render();
-
-        if (_.isNull(this.model.get('allowance'))) {
-            resetView.resetWeek();
-        }
-
-        return this.$el.html();
-
-    },
-});
+/* Marionette Views Start */
 
 var AppLayout = M.LayoutView.extend({
 
-    template: _.template($('#app-layout').html()),
+    template: '#app-layout',
 
     initialize: function() {
         this.listenTo(App, 'change:current_module', this.render);
@@ -336,18 +291,20 @@ var AppLayout = M.LayoutView.extend({
     },
 
     getBudgetLayout: function() {
-        return new BudgetLayout();
+        var currentBudget = App.get('current_budget'); 
+        return new BudgetLayout({model: BudgetList.get(currentBudget)});
     }
 
 });
 
 var SelectionLayout = M.LayoutView.extend({
 
-    template: _.template($('#selection-layout').html()),
+    template: '#selection-layout',
 
     regions: {
         'budgetList' : '[data-budget-list-mount]',
         'actions'    : '[data-actions]',
+        'grandTotal' : '[data-grand-total]',
         'empty'      : '[data-empty]',
     },
 
@@ -368,10 +325,16 @@ var SelectionLayout = M.LayoutView.extend({
         this.getRegion('budgetList').show(new BudgetListView({
             collection: BudgetList
         }));
+        this.getRegion('grandTotal').show(new GrandTotalView({
+            model: BudgetList
+        }));
         this.getRegion('actions').show(new SelectionModuleActionsView());
     },
 
     createNewBudget: function() {
+
+        // Todo, prompt -> Modal
+        // Create helpers on the models here.
 
         var budgetName = prompt("Name your budget", "Personal");
 
@@ -394,36 +357,30 @@ var SelectionModuleActionsView = M.ItemView.extend({
         'click [data-reset-all]': 'resetAllBudgets'
     },
 
-    template: _.template($('#selection-module-actions').html()),
+    template: '#selection-module-actions',
 
     resetAllBudgets: function() {
 
+        // TODO confirm -> Modal
         if (!confirm("Restart week for all budgets?")) {
             return;
         }
 
-        // destroy all expenses
-        var model;
-        while (model = ExpensesList.first()) {
-            model.destroy();
-        }
+        ExpensesList.destroyAll();
+        BudgetList.renew();
 
-        BudgetList.each(function(budget) {
-            budget.incrementTotal(budget.get('allowance'));
-            budget.save();
-        });
-
+        // TODO you should be able to remove this.
         window.location.reload();
     }
 });
 
 var EmptySelectionView = M.ItemView.extend({
-    template: _.template($('#empty-selection').html())
+    template: '#empty-selection'
 });
 
 var BudgetItemView = M.ItemView.extend({
 
-    template: _.template($('#budget-row').html()),
+    template: '#budget-row',
 
     events: {
         'click [data-select-budget]': 'selectBudget'
@@ -442,11 +399,156 @@ var BudgetListView = M.CollectionView.extend({
 
 var BudgetLayout = M.LayoutView.extend({
 
-    template: _.template($('#selection-layout').html()),
+    template: '#budget-layout',
+
+    regions: {
+        expenseList: '[data-expense-list]',
+        balance: '[data-balance]',
+        actions: '[data-budget-actions]',
+    },
 
     onShow: function() {
-        console.log('showing budget');
+        this.getRegion('expenseList').show(new ExpenseListView({
+            collection: ExpensesList,
+            model: this.model
+        }));
+        // TODO implement BalanceView
+        // this.getRegion('balance').show(new BalanceView());
+        this.getRegion('actions').show(new BudgetActionsView());
+    },
+
+});
+
+var ExpenseRowView = M.ItemView.extend({
+
+    template: '#expense-row',
+
+    serializeData: function() {
+        return this.model.serializeData();
+    },
+
+    onRender: function() {
+        // Hack around the tag name issue without having 
+        // to move markup into this class. :(
+        this.$el = this.$el.children();
+        this.$el.unwrap();
+        this.setElement(this.$el);
     }
+});
+
+var NoExpensesView = M.ItemView.extend({
+    template: '#no-expenses',
+});
+
+var ExpenseListView = M.CompositeView.extend({
+
+    template: '#expenses-table',
+
+    childView: ExpenseRowView,
+
+    emptyView: NoExpensesView,
+
+    childViewContainer: '[data-expense-list]',
+
+    events: {
+        keydown: 'handleSubmit'
+    },
+
+    ui: {
+        input: '[data-expense-form]'
+    },
+
+    handleSubmit: function(e) {
+
+        if (!this.validEvent(e)) {
+            return;
+        }
+
+        var amount = Math.ceil(
+            parseFloat(this.ui.input.val())
+        );
+
+        if (!_.isNumber(amount)) { 
+            return;
+        }
+
+        if (this.maybeWipe(amount)) {
+            return;
+        }
+
+        this.model.storeExpense(amount);
+    },
+
+    resetInput: function() {
+        this.$el.val('');
+    },
+
+    validEvent: function(e) {
+        return [KEYS.tab, KEYS.enter].indexOf(e.keyCode) !== -1;
+    }, 
+
+    // TODO Delete this when the UI to perform restarts is complete
+    maybeWipe: function(amount) {
+
+        var wiped = false;
+
+        if (amount === 2015) {
+            wiped = true;
+            this.model.destroy();
+            App.set('current_budget', null);
+            App.save();
+            return;
+        }
+
+        if (amount === 666) {
+            wiped = true;
+            window.localStorage.clear();
+            window.location.reload();
+            return;
+        }
+
+        return wiped;
+
+    },
+
+    /* This is a bit of a hack. Because we don't have the proper 
+     * hooks into the list view rendering, we need to precompute
+     * the running_total before hand. But we don't want that attribute
+     * to hang around and need to be maintained, so afterwords we unset it
+     */
+
+    onBeforeRenderCollection: function() {
+        var startAmount = this.model.get('allowance');
+        this.collection.each(function(expense) {
+            expense.set('running_total', startAmount -= expense.get('amount'), {silent: true});
+        })
+    },
+
+    onRenderCollection: function() {
+        this.collection.each(function(expense) {
+            expense.unset('running_total', {silent: true});
+        });
+    },
+
+});
+
+var BalanceView = M.ItemView.extend({
+});
+
+var BudgetActionsView = M.ItemView.extend({
+    template: '#budget-actions',
+});
+
+var GrandTotalView = M.ItemView.extend({
+
+    template: _.template($('#total-row').html()),
+
+    serializeData: function() {
+        return {
+            grand_total: this.model.grandTotal()
+        };
+    },
+
 });
 
 function main() {

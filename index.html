@@ -19,12 +19,41 @@
             <div data-module-region></div>
         </script>
 
+        <script id="expenses-table" type="text/html">
+            <div class="row padding-1 expense-table">
+                <table 
+                    class="table table-bordered rounded center">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Amount</th>
+                            <th>Remaining <span class="weak small">(from <span data-allowance-mount></span>)</span></th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3">
+                                <input 
+                                    class="input-wide input-bordered rounded"
+                                    data-expense-form 
+                                    type="number" 
+                                    placeholder="add new expense"
+                                    />
+                            </td>
+                        </tr>
+                    </tfoot>
+                    <tbody data-expense-list></tbody>
+                </table>
+            </div>
+        </script>
+
         <script id="selection-layout" type="text/html">
             <h1 data-header class="center padding-2">Budgets</h1>
             <ul 
                 data-budget-list-mount
                 class="list list-bordered rounded margin-1"
                 />
+            <div data-grand-total></div>
             <div data-actions></div>
             <div data-empty></div>
         </script>
@@ -62,9 +91,9 @@
         </script>
 
         <script id="total-row" type="text/html">
-            <li class="padding-2 clearfix">
-                <div class="right"><span class="strong">Total<span>: <span>$<%= grand_total %></span></div>
-            </li>
+            <div class="right padding-2 clearfix">
+                <span class="strong">Total<span>: <span>$<%= grand_total %></span>
+            </div>
         </script>
 
         <script id="empty-selection" type="text/html">
@@ -78,38 +107,27 @@
             <button data-reset-all class="padding-2 left link">Restart all budgets</button>
         </script>
 
-        <script id="budget" type="text/html">
+        <script id="budget-layout" type="text/html">
             <h1 class="padding-2 center">
                 <button data-show-selection class="left no-flow link rounded text-large">
                     <i class="icon-left-open"></i>
                 </button>
                 <%= name %>
             </h1>
-            <div class="row padding-1 expense-table">
-                <table 
-                    class="table table-bordered rounded center">
-                    <thead>
-                        <tr>
-                            <th>Day</th>
-                            <th>Amount</th>
-                            <th>Remaining <span class="weak small">(from <span data-allowance-mount></span>)</span></th>
-                        </tr>
-                    </thead>
-                    <tfoot>
-                        <tr>
-                            <td colspan="3">
-                                <input 
-                                    class="input-wide input-bordered rounded"
-                                    data-expense-form 
-                                    type="number" 
-                                    placeholder="add new expense"
-                                    />
-                            </td>
-                        </tr>
-                    </tfoot>
-                    <tbody data-expense-list></tbody>
-                </table>
-            </div>
+            <div data-expense-list></div>
+            <div data-balance></div>
+            <div data-budget-actions></div>
+        </script>
+
+        <script id="no-expenses" type="text/html">
+            <tr>
+                <td colspan="3">
+                    <div class="strong center padding-2">Log expenses below.</div>
+                </td>
+            </tr>
+        </script>
+
+        <script id="budget-actions" type="text/html">
             <div class="padding-1 row">
                 <span class="right padding-2">
                     <span class="strong">Balance:</span> <span data-running-total-mount></span>

@@ -18,6 +18,8 @@ var MODULES = {
     selection: 'selection'
 };
 
+/* Models */
+
 var AppModel = Backbone.Model.extend({
 
     localStorage: new Backbone.LocalStorage("AppModel"),
@@ -108,64 +110,7 @@ var Expenses = Backbone.Collection.extend({
 
 });
 
-/* Backbone Views */
-
-var AllowanceView = Backbone.View.extend({
-
-    initialize: function(opts) {
-        this.budget = opts.budget;
-        this.listenTo(this.budget, 'sync', this.render);
-    },
-
-    render: function() {
-        this.$el.html(this.budget.get('allowance'));
-    }
-
-});
-
-var ResetView = Backbone.View.extend({
-
-    initialize: function(opts) {
-        this.expenses = opts.expenses;
-    },
-
-    events: { 'click': 'resetWeek' },
-
-    resetWeek: function() {
-
-        var allowance = prompt("How much can you spend this week?", this.model.get('allowance') || '');
-        allowance = parseInt(allowance, 10);
-
-        if (_.isNaN(allowance)) {
-            allowance = 0;
-        }
-
-        var model;
-
-        while (model = this.expenses.where({'budget': this.model.id}).pop()) {
-            model.destroy();
-        }
-
-        this.model.set('allowance', allowance);
-        this.model.incrementTotal(allowance);
-
-        this.model.save();
-    }
-});
-
-var TotalView = Backbone.View.extend({
-
-    initialize: function(opts) {
-        this.expenses = opts.expenses;
-        this.listenTo(this.model, 'change sync', this.render);
-    },
-
-    render: function() {
-        this.$el.html(this.model.get('cummulative_total'));
-    }
-})
-
-/* Marionette Views Start */
+/* Views */
 
 var AppLayout = M.LayoutView.extend({
 

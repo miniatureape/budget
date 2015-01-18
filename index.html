@@ -27,7 +27,7 @@
                         <tr>
                             <th>Day</th>
                             <th>Amount</th>
-                            <th>Remaining <span class="weak small">(from <span data-allowance-mount></span>)</span></th>
+                            <th>Remaining <span class="weak small">(from <%= allowance %>)</span></th>
                         </tr>
                     </thead>
                     <tfoot>
@@ -64,12 +64,6 @@
                 <td>$ <%= amount %></td>
                 <td><%= running_total %></td>
             </tr>
-        </script>
-
-        <script id="week-view" type="text/html">
-            <div class="left width-3 stat-block"><%= allowance %></div>
-            <div class="left width-3 stat-block"><%= spent %></div>
-            <div class="left width-3 stat-block"><%= difference %></div>
         </script>
 
         <script id="expenses-empty" type="text/html">

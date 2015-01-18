@@ -235,19 +235,26 @@ var SelectionLayout = M.LayoutView.extend({
 
     createNewBudget: function() {
 
-        // Todo, prompt -> Modal
-        // Create helpers on the models here.
+        // TODO prompt -> Modal
+        // but allowance into a helper method
 
-        var budgetName = prompt("Name your budget", "Personal");
+        var budgetName   = prompt("Name your budget", "Spending Money");
+        var allowance = parseInt(prompt("How much money?", 100), 10);
 
         if (!budgetName) {
             return;
         }
 
-        var budget = BudgetList.create({name: budgetName});
+        var budget = BudgetList.create({
+            name: budgetName,
+            allowance: allowance
+        });
         budget.save();
-        App.set('current_module', MODULES.budget);
-        App.set('current_budget', budget.id);
+
+        App.set({
+            'current_module': MODULES.budget,
+            'current_budget': budget.id
+        });
         App.save();
     },
 

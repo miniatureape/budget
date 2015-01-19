@@ -156,7 +156,7 @@ var CreateBudgetModal = M.ItemView.extend({
     
     ui: {
         name: '[data-budget-name]',
-        allowance: '[data-allowance-name]',
+        allowance: '[data-budget-allowance]',
     },
 
     onGetData: function() {
@@ -274,24 +274,15 @@ var SelectionLayout = M.LayoutView.extend({
     },
 
     createNewBudget: function() {
-
-        // TODO prompt -> Modal
-        // but allowance into a helper method
-
         appLayout.showModal(
             new CreateBudgetModal()
         ).done(this.saveBudget);
-
     },
 
     saveBudget: function(budgetData) {
-        var budget = BudgetList.create(budgetData);
+        var budget = BudgetList.create(budgetData, {silent: true});
         budget.save();
-        App.set({
-            'current_module': MODULES.budget,
-            'current_budget': budget.id
-        });
-        App.save();
+        BudgetList.trigger('add', budget, BudgetList);
     }
 
 });

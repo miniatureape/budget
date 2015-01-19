@@ -17,7 +17,7 @@
 
         <script id="app-layout" type="text/html">
             <div data-module-region class="module-region"></div>
-            <div data-modal-region class="modal-region">Here I am</div>
+            <div data-modal-region class="modal-region padding-2">Here I am</div>
         </script>
 
         <script id="expenses-table" type="text/html">
@@ -138,10 +138,26 @@
         </script>
 
         <script id="create-budget" type="text/html">
-            <input data-budget-name></input>
-            <input data-allowance-name></input>
-            <div data-cancel>Cancel</div>
-            <div data-accept>Accept</div>
+            <h1>Create a budget</h1>
+            <input 
+                data-budget-name
+                placeholder="Spending Money"
+                class="margin-v-1 input-wide input-bordered rounded"
+                ></input>
+            <input 
+                data-budget-allowance
+                type="number"
+                placeholder="1"
+                class="margin-v-1 input-wide input-bordered rounded"
+                ></input>
+            <button 
+                data-cancel
+                class="padding-2 rounded cancel"
+                >Cancel</button>
+            <button 
+                class="padding-2 rounded primary"
+                data-accept
+                >Accept</button>
         </script>
 
         <script src="main.TIMESTAMP.js"></script>

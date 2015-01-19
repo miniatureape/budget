@@ -1,1 +1,2 @@
-Implement the total row on selection screen next
+Layout create budget Modal.
+Show validation on modal.

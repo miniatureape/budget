@@ -110,11 +110,85 @@ var Expenses = Backbone.Collection.extend({
 
 });
 
+/* Behaviors */
+
+window.Behaviors = {};
+
+M.Behaviors.behaviorsLookup = function() {
+    return window.Behaviors;
+}
+
+window.Behaviors.Modal = M.Behavior.extend({
+
+    triggers: {
+        'click [data-cancel]': 'cancel',
+        'click [data-accept]': 'accept',
+    },
+
+    onSetDfd: function(dfd) {
+        this.dfd = dfd;
+    },
+
+    onCancel: function() {
+        appLayout.closeModal();
+        this.dfd.reject();
+    },
+
+    onAccept: function() {
+        var data = this.view.triggerMethod('get:data');
+        if (data === null) {
+            this.view.triggerMethod('show:validation');
+        } else {
+            appLayout.closeModal();
+            this.dfd.resolve(data);
+        }
+    },
+
+});
+
 /* Views */
 
 var CreateBudgetModal = M.ItemView.extend({
-    template: '#create-budget'
+
+    behaviors: { Modal: {} },
+
+    template: '#create-budget',
+    
+    ui: {
+        name: '[data-budget-name]',
+        allowance: '[data-allowance-name]',
+    },
+
+    onGetData: function() {
+        var name = this.getValidNameOrNull();
+        var allowance = this.getValidAllowanceOrNull();
+
+        if (_.isNull(name) && _.isNull(allowance)) {
+            return null;
+        } else {
+            return {name: name, allowance: allowance};
+        }
+
+    },
+
+    getValidNameOrNull: function() {
+        var name = this.ui.name.val();
+        return name || null;
+    },
+
+    getValidAllowanceOrNull: function() {
+        var allowance = this.ui.allowance.val();
+        allowance = parseInt(allowance, 10);
+        return _.isNaN(allowance) ? null : allowance;
+    },
+
+    onShowValidation: function() {
+        console.log('show validation');
+        // TODO Display validation message.
+    }
+
 });
+
 
 var AppLayout = M.LayoutView.extend({
 
@@ -149,8 +223,19 @@ var AppLayout = M.LayoutView.extend({
     },
 
     showModal: function(modalView) {
+        var dfd = $.Deferred();
+        modalView.triggerMethod('set:dfd', dfd);
         this.getRegion('modalRegion').show(modalView);
         this.$el.toggleClass('modal-active');
+        return dfd;
+    },
+
+    closeModal: function() {
+        this.$el.on('transitionend.modal-close', _.bind(function() {
+            this.getRegion('modalRegion').empty();
+            this.$el.off('transitionend.modal-close');
+        }, this));
+        this.$el.removeClass('modal-active');
     },
 
 });
@@ -195,32 +280,19 @@ var SelectionLayout = M.LayoutView.extend({
 
         appLayout.showModal(
             new CreateBudgetModal()
-        );
+        ).done(this.saveBudget);
 
-        return;
+    },
 
-        /*
-        var budgetName   = prompt("Name your budget", "Spending Money");
-        var allowance = parseInt(prompt("How much money?", 100), 10);
-        */
-
-
-        if (!budgetName) {
-            return;
-        }
-
-        var budget = BudgetList.create({
-            name: budgetName,
-            allowance: allowance
-        });
+    saveBudget: function(budgetData) {
+        var budget = BudgetList.create(budgetData);
         budget.save();
-
         App.set({
             'current_module': MODULES.budget,
             'current_budget': budget.id
         });
         App.save();
-    },
+    }
 
 });
 

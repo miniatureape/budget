@@ -1,2 +1,2 @@
-Layout create budget Modal.
 Show validation on modal.
+Fix validation on expense creation, currently messes up on non ints.

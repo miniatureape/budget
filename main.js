@@ -66,6 +66,11 @@ var Budget = Backbone.Model.extend({
 
         var amount = expense.get('amount');
         this.incrementTotal(amount);
+        
+        this.destroyExpense(expense)
+    },
+
+    destroyExpense: function(expense) {
 
         // Hack around the fact that we keep this model in two collections at once:
         // The full list of expenses, and our filtered collection that we render per budget.
@@ -81,6 +86,15 @@ var Budget = Backbone.Model.extend({
     renew: function() {
         this.incrementTotal(this.get('allowance'));
     },
+
+    resetBudget: function() {
+        var filtered = ExpensesList.where({budget: this.get('id')})
+        _.each(filtered, function(expense) {
+           this.destroyExpense(expense);
+        }, this)
+        this.incrementTotal(this.get('allowance'));
+    }
+
 });
 
 var Budgets = Backbone.Collection.extend({
@@ -391,7 +405,9 @@ var BudgetLayout = M.LayoutView.extend({
         this.getRegion('balance').show(new BalanceView({
             model: this.model
         }));
-        this.getRegion('actions').show(new BudgetActionsView());
+        this.getRegion('actions').show(new BudgetActionsView({
+            model: this.model
+        }));
     },
 
     showBudgetSelection: function() {
@@ -566,6 +582,15 @@ var BalanceView = M.ItemView.extend({
 
 var BudgetActionsView = M.ItemView.extend({
     template: '#budget-actions',
+
+    events: {
+        'click [data-reset-budget]': 'resetBudget',
+    },
+
+    resetBudget: function() {
+        debugger;
+        this.model.resetBudget();
+    },
 });
 
 var GrandTotalView = M.ItemView.extend({

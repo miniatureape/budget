@@ -588,7 +588,6 @@ var BudgetActionsView = M.ItemView.extend({
     },
 
     resetBudget: function() {
-        debugger;
         this.model.resetBudget();
     },
 });

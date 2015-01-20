@@ -55,7 +55,32 @@ var Budget = Backbone.Model.extend({
         this.save();
 
         ExpensesList.trigger('add', expense, ExpensesList);
-    }
+        return expense;
+    },
+
+    removeExpense: function(expense) {
+
+        if (_.isString(expense)) {
+            expense = ExpensesList.get(expense);
+        }
+
+        var amount = expense.get('amount');
+        this.incrementTotal(-amount);
+
+        // Hack around the fact that we keep this model in two collections at once:
+        // The full list of expenses, and our filtered collection that we render per budget.
+        // we use trigger because all the collections are listening to model change events,
+        // but, since we lose the collection linkage there, first we have to sync/delete so the
+        // item is remove from localstorage.
+        // TODO: Figure out a better way than keeping two collections.
+        
+        expense.sync('delete', expense);
+        expense.trigger('destroy', expense);
+    },
+
+    renew: function() {
+        this.incrementTotal(this.get('allowance'));
+    },
 });
 
 var Budgets = Backbone.Collection.extend({
@@ -72,10 +97,16 @@ var Budgets = Backbone.Collection.extend({
 
     renew: function() {
         this.each(function(budget) {
-            budget.incrementTotal(budget.get('allowance'));
+            budget.renew();
             budget.save();
         });
-    }
+    },
+
+    create: function(data, options) {
+        data.cummulative_total = data.cummulative_total || data.allowance;
+        return Backbone.Collection.prototype.create.call(this, data, options);
+    },
+
 });
 
 var Expense = Backbone.Model.extend({
@@ -316,6 +347,8 @@ var EmptySelectionView = M.ItemView.extend({
 
 var BudgetItemView = M.ItemView.extend({
 
+    tagName: 'li',
+
     template: '#budget-row',
 
     events: {
@@ -341,9 +374,9 @@ var BudgetLayout = M.LayoutView.extend({
     template: '#budget-layout',
 
     regions: {
-        expenseList: '[data-expense-list]',
-        balance: '[data-balance]',
-        actions: '[data-budget-actions]',
+        expenseList : '[data-expense-list]',
+        balance     : '[data-balance]',
+        actions     : '[data-budget-actions]',
     },
 
     events: {
@@ -403,11 +436,22 @@ var ExpenseListView = M.CompositeView.extend({
     childViewContainer: '[data-expense-list]',
 
     events: {
-        keydown: 'handleSubmit'
+        keydown: 'handleSubmit',
+        'click [data-expense-action]': 'removeExpense'
     },
 
     ui: {
         input: '[data-expense-form]'
+    },
+
+    initialize: function(opts) {
+        this.completeCollection = opts.collection;
+        this.collection = this.filterCollection(this.completeCollection);
+        this.listenTo(this.model, 'change', this.render);
+    },
+
+    filterCollection: function(completeCollection) {
+        return new Expenses(completeCollection.where({budget: this.model.get('id')}));
     },
 
     handleSubmit: function(e) {
@@ -428,16 +472,28 @@ var ExpenseListView = M.CompositeView.extend({
             return;
         }
 
-        this.model.storeExpense(amount);
+        this.resetInput();
+
+        // Store the new expense in the global list, but also update
+        // the current views collection
+        var expense = this.model.storeExpense(amount);
+        this.collection.add(expense);
+
     },
 
     resetInput: function() {
-        this.$el.val('');
+        this.ui.input.val('');
     },
 
     validEvent: function(e) {
         return [KEYS.tab, KEYS.enter].indexOf(e.keyCode) !== -1;
     }, 
+
+    removeExpense: function(e) {
+        var id = $(e.currentTarget).attr('id');
+        var expense = ExpensesList.get(id);
+        this.model.removeExpense(expense);
+    },
 
     // TODO Delete this when the UI to perform restarts is complete
     maybeWipe: function(amount) {
@@ -501,6 +557,9 @@ var ExpenseListView = M.CompositeView.extend({
 
 var BalanceView = M.ItemView.extend({
     template: '#budget-balance',
+    initialize: function() {
+        this.listenTo(this.model, 'change', this.render);
+    },
 });
 
 var BudgetActionsView = M.ItemView.extend({

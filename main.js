@@ -65,7 +65,7 @@ var Budget = Backbone.Model.extend({
         }
 
         var amount = expense.get('amount');
-        this.incrementTotal(-amount);
+        this.incrementTotal(amount);
 
         // Hack around the fact that we keep this model in two collections at once:
         // The full list of expenses, and our filtered collection that we render per budget.
@@ -490,9 +490,11 @@ var ExpenseListView = M.CompositeView.extend({
     }, 
 
     removeExpense: function(e) {
-        var id = $(e.currentTarget).attr('id');
-        var expense = ExpensesList.get(id);
-        this.model.removeExpense(expense);
+        var answer = confirm("Do you want to delete this expense?");
+        if (answer) {
+            var expenseId = $(e.currentTarget).attr('id');
+            this.model.removeExpense(expenseId);
+        }
     },
 
     // TODO Delete this when the UI to perform restarts is complete

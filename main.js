@@ -300,7 +300,15 @@ var SelectionLayout = M.LayoutView.extend({
         'click [data-new-budget]': 'createNewBudget',
     },
 
+    initialize: function() {
+        this.listenTo(BudgetList, 'add', this.render);
+    },
+
     onShow: function() {
+        BudgetList.isEmpty() ?  this.showEmpty() : this.showBudgetList();
+    },
+
+    onRender: function() {
         BudgetList.isEmpty() ?  this.showEmpty() : this.showBudgetList();
     },
 
